@@ -250,26 +250,18 @@ void updateADCValues(unsigned int * values)
 void configurePWM(void)
 {
 	SysCtlPeripheralEnable(SYSCTL_PERIPH_PWM);
-	SysCtlPeripheralEnable(SYSCTL_PERIPH_GPIOD);
-	SysCtlPeripheralEnable(SYSCTL_PERIPH_GPIOB);
-	GPIOPinTypePWM(GPIO_PORTD_BASE, GPIO_PIN_0 | GPIO_PIN_1);
-	GPIOPinTypePWM(GPIO_PORTB_BASE, GPIO_PIN_0 | GPIO_PIN_1);
+	SysCtlPeripheralEnable(SYSCTL_PERIPH_GPIOA);
+	GPIOPinTypePWM(GPIO_PORTA_BASE, GPIO_PIN_6 | GPIO_PIN_7);
 
+	PWMGenConfigure(PWM_BASE,PWM_GEN_2,PWM_GEN_MODE_UP_DOWN|PWM_GEN_MODE_NO_SYNC);
 
-	PWMGenConfigure(PWM_BASE,PWM_GEN_1,PWM_GEN_MODE_UP_DOWN|PWM_GEN_MODE_NO_SYNC);
-	PWMGenConfigure(PWM_BASE,PWM_GEN_0,PWM_GEN_MODE_UP_DOWN|PWM_GEN_MODE_NO_SYNC);
+	PWMGenPeriodSet(PWM_BASE, PWM_GEN_2, MAX_PWM_DRIVE);		// Drive PWM
 
-	PWMGenPeriodSet(PWM_BASE, PWM_GEN_0, MAX_PWM_DRIVE);		// Drive PWM
-	PWMGenPeriodSet(PWM_BASE, PWM_GEN_1, MAX_PWM_STEER);		// Steer PWM
+	PWMOutputState(PWM_BASE, (PWM_OUT_4_BIT | PWM_OUT_5_BIT), true);
+	PWMGenEnable(PWM_BASE, PWM_GEN_2);
 
-	PWMOutputState(PWM_BASE, (PWM_OUT_0_BIT | PWM_OUT_1_BIT | PWM_OUT_2_BIT | PWM_OUT_3_BIT), true);
-	PWMGenEnable(PWM_BASE, PWM_GEN_0);
-	PWMGenEnable(PWM_BASE, PWM_GEN_1);
-	PWMPulseWidthSet(PWM_BASE, PWM_OUT_0, 0);
-	PWMPulseWidthSet(PWM_BASE, PWM_OUT_1, 0);
-	PWMPulseWidthSet(PWM_BASE, PWM_OUT_2, 0);
-	PWMPulseWidthSet(PWM_BASE, PWM_OUT_3, 0);
-
+	PWMPulseWidthSet(PWM_BASE, PWM_OUT_4, 0);
+	PWMPulseWidthSet(PWM_BASE, PWM_OUT_5, 0);
 
 
 }
@@ -279,22 +271,22 @@ void drive_pwm(void)
 	//write pwm vales
 	if(ferrari288gto.Drive < 0 && ferrari288gto.Drive > -100)
 	{
-		PWMPulseWidthSet(PWM_BASE, PWM_OUT_0, 0);
-		PWMPulseWidthSet(PWM_BASE, PWM_OUT_1, (PWMGenPeriodGet(PWM_BASE, PWM_GEN_0)-5) * -ferrari288gto.Drive / 100);
+		PWMPulseWidthSet(PWM_BASE, PWM_OUT_4, 0);
+		PWMPulseWidthSet(PWM_BASE, PWM_OUT_5, (PWMGenPeriodGet(PWM_BASE, PWM_GEN_2)-5) * -ferrari288gto.Drive / 100);
 	}
 	else if(ferrari288gto.Drive >= 0 && ferrari288gto.Drive < 100)
 	{
-		PWMPulseWidthSet(PWM_BASE, PWM_OUT_1, 0);
-		PWMPulseWidthSet(PWM_BASE, PWM_OUT_0, (PWMGenPeriodGet(PWM_BASE, PWM_GEN_0)-5) * ferrari288gto.Drive / 100);
+		PWMPulseWidthSet(PWM_BASE, PWM_OUT_5, 0);
+		PWMPulseWidthSet(PWM_BASE, PWM_OUT_4, (PWMGenPeriodGet(PWM_BASE, PWM_GEN_2)-5) * ferrari288gto.Drive / 100);
 	}
 	else if(ferrari288gto.Drive >= 100)
 	{
-		PWMPulseWidthSet(PWM_BASE, PWM_OUT_1, 0);
-		PWMPulseWidthSet(PWM_BASE, PWM_OUT_0, MAX_PWM_DRIVE - 5);
+		PWMPulseWidthSet(PWM_BASE, PWM_OUT_5, 0);
+		PWMPulseWidthSet(PWM_BASE, PWM_OUT_4, MAX_PWM_DRIVE - 5);
 	}
 	else if(ferrari288gto.Drive <= -100)
 	{
-		PWMPulseWidthSet(PWM_BASE, PWM_OUT_1, MAX_PWM_DRIVE - 5);
-		PWMPulseWidthSet(PWM_BASE, PWM_OUT_0, 0);
+		PWMPulseWidthSet(PWM_BASE, PWM_OUT_5, MAX_PWM_DRIVE - 5);
+		PWMPulseWidthSet(PWM_BASE, PWM_OUT_4, 0);
 	}
 }

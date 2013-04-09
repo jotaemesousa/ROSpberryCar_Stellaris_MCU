@@ -22,16 +22,16 @@
 void servo_init()
 {
 	SysCtlPeripheralEnable(SYSCTL_PERIPH_PWM);
-	SysCtlPeripheralEnable(SYSCTL_PERIPH_GPIOC);
+	SysCtlPeripheralEnable(SYSCTL_PERIPH_GPIOD);
 	SysCtlPWMClockSet(SYSCTL_PWMDIV_16);
-	GPIOPinTypePWM(GPIO_PORTC_BASE,GPIO_PIN_6);
+	GPIOPinTypePWM(GPIO_PORTD_BASE,GPIO_PIN_1);
 
 
-	PWMGenConfigure(PWM_BASE,PWM_GEN_3,PWM_GEN_MODE_DOWN|PWM_GEN_MODE_NO_SYNC);
-	PWMGenPeriodSet(PWM_BASE, PWM_GEN_3, 62500);
+	PWMGenConfigure(PWM_BASE,PWM_GEN_0,PWM_GEN_MODE_DOWN|PWM_GEN_MODE_NO_SYNC);
+	PWMGenPeriodSet(PWM_BASE, PWM_GEN_0, 62500);
 	servo_setPosition(SERVO_CENTER_ANGLE);
-	PWMOutputState(PWM_BASE, PWM_OUT_7_BIT, true);
-	PWMGenEnable(PWM_BASE, PWM_GEN_3);
+	PWMOutputState(PWM_BASE, PWM_OUT_1_BIT, true);
+	PWMGenEnable(PWM_BASE, PWM_GEN_0);
 
 }
 
@@ -66,7 +66,7 @@ void servo_setPosition(int position)
 	if (position >= 0 && position <= 180)
 	{
 		value =  BASE + (position * ((END-BASE)/180));
-		PWMPulseWidthSet(PWM_BASE, PWM_OUT_7, value);
+		PWMPulseWidthSet(PWM_BASE, PWM_OUT_1, value);
 	}
 
 }
