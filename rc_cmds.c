@@ -25,6 +25,10 @@ void default_rc(void)
 	ferrari288gto.size = 0;
 	ferrari288gto.size_msg = 0;
 	ferrari288gto.last_millis = 0;
+	ferrari288gto_param.head_lights = 0;
+	ferrari288gto_param.tail_lights = 0;
+	ferrari288gto_param.left_neon = 0;
+	ferrari288gto_param.right_neon = 0;
 }
 
 void add_rx_char(char c)
@@ -82,18 +86,16 @@ void parseMessage(void)
 		{
 			offset -= MAX_BUFFER_SIZE;
 		}
-		switch (state)
+
+		if(ferrari288gto.rx[i + offset] == FIRST_CHAR)
 		{
-		case 0:
-			if(ferrari288gto.rx[i + offset] == FIRST_CHAR)
-			{
-				c = 0;
-				state = 1;
+			c = 0;
+			i_vals = 0;
 
-			}
-			break;
+		}
+		else
+		{
 
-		case 1:
 			if(ferrari288gto.rx[i + offset] == LAST_CHAR)
 			{
 				if(c)
@@ -118,6 +120,30 @@ void parseMessage(void)
 					ferrari288gto.Steer = vals[2];
 					ferrari288gto.last_millis = millis();
 				}
+				// set PWM
+				else if(i_vals == 3 && vals[0] == 1 )
+				{
+					if(vals[2] < 0)
+					{
+						vals[2] = 0;
+					}
+					switch (vals[1])
+					{
+					case 0:
+						ferrari288gto_param.head_lights = vals[2];
+						break;
+					case 1:
+						ferrari288gto_param.tail_lights = vals[2];
+						break;
+					case 2:
+						ferrari288gto_param.left_neon = vals[2];
+						break;
+					case 3:
+						ferrari288gto_param.right_neon = vals[2];
+						break;
+
+					}
+				}
 			}
 			else if(ferrari288gto.rx[i + offset] == ' ')
 			{
@@ -133,7 +159,6 @@ void parseMessage(void)
 				temp_str[c++] = ferrari288gto.rx[i + offset];
 			}
 
-			break;
 		}
 	}
 }

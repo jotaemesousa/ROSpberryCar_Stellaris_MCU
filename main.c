@@ -25,7 +25,6 @@ static unsigned long ulClockMS=0;
 #define TICKS_PER_SECOND 		1000
 
 // adc
-#define STEER_ADC			0
 #define BATTERY_ADC			1
 
 // servo and drive
@@ -120,7 +119,9 @@ int main(void)
     UARTprintf("%X\n",get_dev_id_adxl345());
 #endif
 
+#ifdef ADLX345_INSTALLED
     struct Accelerometer adxl345;
+#endif
 
 #ifdef DEBUG
     UARTprintf("enter loop\n");
@@ -201,7 +202,6 @@ void setupADC(void)
 	ADCSequenceDisable(ADC_BASE, 0);
 	ADCSequenceEnable(ADC_BASE, 0);
 	ADCSequenceConfigure(ADC_BASE, 0, ADC_TRIGGER_PROCESSOR, 0);
-	ADCSequenceStepConfigure(ADC_BASE, 0, STEER_ADC, ADC_CTL_CH0 );
 	ADCSequenceStepConfigure(ADC_BASE, 0, BATTERY_ADC, ADC_CTL_IE | ADC_CTL_END | ADC_CTL_CH1 );
 	ADCSoftwareOversampleConfigure(ADC_BASE, 0, 4);
 
@@ -251,17 +251,24 @@ void configurePWM(void)
 {
 	SysCtlPeripheralEnable(SYSCTL_PERIPH_PWM);
 	SysCtlPeripheralEnable(SYSCTL_PERIPH_GPIOA);
+	SysCtlPeripheralEnable(SYSCTL_PERIPH_GPIOC);
 	GPIOPinTypePWM(GPIO_PORTA_BASE, GPIO_PIN_6 | GPIO_PIN_7);
+	GPIOPinTypePWM(GPIO_PORTC_BASE, GPIO_PIN_4 | GPIO_PIN_6);
 
 	PWMGenConfigure(PWM_BASE,PWM_GEN_2,PWM_GEN_MODE_UP_DOWN|PWM_GEN_MODE_NO_SYNC);
+	PWMGenConfigure(PWM_BASE,PWM_GEN_3,PWM_GEN_MODE_UP_DOWN|PWM_GEN_MODE_NO_SYNC);
 
 	PWMGenPeriodSet(PWM_BASE, PWM_GEN_2, MAX_PWM_DRIVE);		// Drive PWM
+	PWMGenPeriodSet(PWM_BASE, PWM_GEN_3, MAX_PWM_DRIVE);		// Drive PWM
 
-	PWMOutputState(PWM_BASE, (PWM_OUT_4_BIT | PWM_OUT_5_BIT), true);
+	PWMOutputState(PWM_BASE, (PWM_OUT_4_BIT | PWM_OUT_5_BIT|PWM_OUT_7_BIT | PWM_OUT_6_BIT), true);
 	PWMGenEnable(PWM_BASE, PWM_GEN_2);
+	PWMGenEnable(PWM_BASE, PWM_GEN_3);
 
 	PWMPulseWidthSet(PWM_BASE, PWM_OUT_4, 0);
 	PWMPulseWidthSet(PWM_BASE, PWM_OUT_5, 0);
+	PWMPulseWidthSet(PWM_BASE, PWM_OUT_6, 0);
+	PWMPulseWidthSet(PWM_BASE, PWM_OUT_7, 0);
 
 
 }

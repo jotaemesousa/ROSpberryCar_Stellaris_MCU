@@ -11,7 +11,7 @@
 
 //#include "car.h"
 
-#define MAX_BUFFER_SIZE			20
+#define MAX_BUFFER_SIZE			50
 #define FIRST_CHAR				':'
 #define LAST_CHAR				';'
 #define THRESHOLD_BETWEEN_MSG	300L	//ms
@@ -40,7 +40,7 @@ struct rc_cmds
 struct rc_parameters
 {
 	unsigned int battery_voltage;	// mV
-	char lights;
+	char head_lights, tail_lights, left_neon, right_neon;
 };
 
 extern struct rc_cmds ferrari288gto;
