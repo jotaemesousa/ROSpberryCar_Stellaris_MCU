@@ -72,9 +72,9 @@ void add_rx_str(char *s, unsigned int n_char)
 
 void parseMessage(void)
 {
-	int vals[5], c = 0, i_vals = 0;
-	char temp_str[10];
-	memset(temp_str,0,10);
+	int vals[N_VALUES], c = 0, i_vals = 0;
+	char temp_str[N_CHARS];
+	memset(temp_str,0,N_CHARS);
 
 	short offset = 0, counter = 0;
 
@@ -121,9 +121,9 @@ void parseMessage(void)
 					ferrari288gto.last_millis = millis();
 				}
 				// set PWM
-				else if(i_vals == 3 && vals[0] == 1 )
+				else if(i_vals == 5 && vals[0] == 1 )
 				{
-					if(vals[2] < 0)
+					/*if(vals[2] < 0)
 					{
 						vals[2] = 0;
 					}
@@ -142,19 +142,23 @@ void parseMessage(void)
 						ferrari288gto_param.right_neon = vals[2];
 						break;
 
-					}
+					}*/
+					ferrari288gto_param.head_lights = vals[1];
+					ferrari288gto_param.tail_lights = vals[2];
+					ferrari288gto_param.left_neon = vals[3];
+					ferrari288gto_param.right_neon = vals[4];
 				}
 			}
 			else if(ferrari288gto.rx[i + offset] == ' ')
 			{
-				if(c)
+				if(c && i_vals < N_VALUES)
 				{
 					vals[i_vals++] = atoi(temp_str);
 				}
 				c = 0;
 				memset(temp_str,0,10);
 			}
-			else if(c < 5)
+			else if(c < N_CHARS)
 			{
 				temp_str[c++] = ferrari288gto.rx[i + offset];
 			}

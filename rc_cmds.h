@@ -15,6 +15,8 @@
 #define FIRST_CHAR				':'
 #define LAST_CHAR				';'
 #define THRESHOLD_BETWEEN_MSG	300L	//ms
+#define N_CHARS					10
+#define N_VALUES				5
 
 // Remote settings
 #define REMOTE_MIN_THROTLE		637
