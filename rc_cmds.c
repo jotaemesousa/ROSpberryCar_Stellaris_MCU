@@ -76,7 +76,7 @@ void parseMessage(void)
 	char temp_str[10];
 	memset(temp_str,0,10);
 
-	short state = 0, offset = 0, counter = 0;
+	short offset = 0, counter = 0;
 
 	int i;
 	for (i = ferrari288gto.first_char; i < (ferrari288gto.first_char + ferrari288gto.size); ++i)
@@ -154,7 +154,7 @@ void parseMessage(void)
 				c = 0;
 				memset(temp_str,0,10);
 			}
-			else
+			else if(c < 5)
 			{
 				temp_str[c++] = ferrari288gto.rx[i + offset];
 			}
