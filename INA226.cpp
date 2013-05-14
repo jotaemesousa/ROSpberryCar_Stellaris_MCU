@@ -37,7 +37,7 @@ INA226::~INA226() {
 	// TODO Auto-generated destructor stub
 }
 
-uint16_t INA226::read_register(uint8_t reg)
+uint16_t INA226::read_register(i2c_registers reg)
 {
 	uint16_t conf_reg = 0;
 	I2CMasterSlaveAddrSet(I2C0_MASTER_BASE, addr_ ,false);
@@ -67,7 +67,7 @@ uint16_t INA226::read_register(uint8_t reg)
 	return conf_reg;
 }
 
-void INA226::write_register(uint8_t reg, uint16_t value)
+void INA226::write_register(i2c_registers reg, uint16_t value)
 {
 	I2CMasterSlaveAddrSet(I2C0_MASTER_BASE, addr_ ,false);
 
@@ -114,7 +114,7 @@ void INA226::set_sample_average(int avg)
 		new_conf_reg |= 0b1111111111111111;
 		break;
 	}
-	write_register(CONFGURATION_REGISTER, new_conf_reg);
+	write_register(configuration_register, new_conf_reg);
 	conf_reg_ = new_conf_reg;
 }
 
@@ -126,7 +126,7 @@ void INA226::set_vbus_conv_timer(uint16_t ct)
 	{
 		new_conf_reg |= (ct & 0b00000111) << 6;
 	}
-	write_register(CONFGURATION_REGISTER, new_conf_reg);
+	write_register(configuration_register, new_conf_reg);
 	conf_reg_ = new_conf_reg;
 }
 
@@ -138,11 +138,11 @@ void INA226::set_vshunt_conv_timer(uint16_t ct)
 	{
 		new_conf_reg |= (ct & 0b00000111) << 3;
 	}
-	write_register(CONFGURATION_REGISTER, new_conf_reg);
+	write_register(configuration_register, new_conf_reg);
 	conf_reg_ = new_conf_reg;
 }
 
-void INA226::set_operating_mode(uint8_t mode)
+void INA226::set_operating_mode(operating_mode_settings mode)
 {
 	uint16_t new_conf_reg = conf_reg_ & 0b1111111111111000;
 
@@ -150,6 +150,6 @@ void INA226::set_operating_mode(uint8_t mode)
 	{
 		new_conf_reg |= (mode & 0b00000111);
 	}
-	write_register(CONFGURATION_REGISTER, new_conf_reg);
+	write_register(configuration_register, new_conf_reg);
 	conf_reg_ = new_conf_reg;
 }
