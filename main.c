@@ -25,7 +25,7 @@ static unsigned long ulClockMS=0;
 #define TICKS_PER_SECOND 		1000
 
 // adc
-#define BATTERY_ADC			1
+#define BATTERY_ADC			0
 
 // servo and drive
 #define MAX_PWM_STEER		100
@@ -162,6 +162,8 @@ int main(void)
 
 			ferrari288gto.new_msg = 0;
 		}
+		UARTprintf("ADC = %d %d\n", max1, max2);
+		SysCtlDelay(50*ulClockMS);
 
 #ifdef DEBUG_PID
 		c++;
