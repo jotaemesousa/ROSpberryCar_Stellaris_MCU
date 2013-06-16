@@ -33,32 +33,32 @@
 		<link>
 			<name>utils/cmdline.c</name>
 			<type>1</type>
-			<locationURI>PARENT-4-PROJECT_LOC/mnt/D/cenas_ARM/stellaris/utils/cmdline.c</locationURI>
+			<locationURI>PARENT-2-PROJECT_LOC/StellarisWare/utils/cmdline.c</locationURI>
 		</link>
 		<link>
 			<name>utils/cmdline.h</name>
 			<type>1</type>
-			<locationURI>PARENT-4-PROJECT_LOC/mnt/D/cenas_ARM/stellaris/utils/cmdline.h</locationURI>
+			<locationURI>PARENT-2-PROJECT_LOC/StellarisWare/utils/cmdline.h</locationURI>
 		</link>
 		<link>
 			<name>utils/uartstdio.c</name>
 			<type>1</type>
-			<locationURI>PARENT-4-PROJECT_LOC/mnt/D/cenas_ARM/stellaris/utils/uartstdio.c</locationURI>
+			<locationURI>PARENT-2-PROJECT_LOC/StellarisWare/utils/uartstdio.c</locationURI>
 		</link>
 		<link>
 			<name>utils/uartstdio.h</name>
 			<type>1</type>
-			<locationURI>PARENT-4-PROJECT_LOC/mnt/D/cenas_ARM/stellaris/utils/uartstdio.h</locationURI>
+			<locationURI>PARENT-2-PROJECT_LOC/StellarisWare/utils/uartstdio.h</locationURI>
 		</link>
 		<link>
 			<name>utils/ustdlib.c</name>
 			<type>1</type>
-			<locationURI>PARENT-4-PROJECT_LOC/mnt/D/cenas_ARM/stellaris/utils/ustdlib.c</locationURI>
+			<locationURI>PARENT-2-PROJECT_LOC/StellarisWare/utils/ustdlib.c</locationURI>
 		</link>
 		<link>
 			<name>utils/ustdlib.h</name>
 			<type>1</type>
-			<locationURI>PARENT-4-PROJECT_LOC/mnt/D/cenas_ARM/stellaris/utils/ustdlib.h</locationURI>
+			<locationURI>PARENT-2-PROJECT_LOC/StellarisWare/utils/ustdlib.h</locationURI>
 		</link>
 	</linkedResources>
 </projectDescription>

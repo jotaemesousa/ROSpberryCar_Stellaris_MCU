@@ -4,8 +4,10 @@ extern "C" {
 #include "inc/hw_types.h"
 #include "inc/hw_i2c.h"
 #include "inc/hw_ints.h"
+#include <driverlib/adc.h>
 #include "driverlib/interrupt.h"
 #include "driverlib/i2c.h"
+#include "driverlib/pwm.h"
 #include "driverlib/rom.h"
 #include "driverlib/rom_map.h"
 #include "driverlib/sysctl.h"
@@ -16,22 +18,49 @@ extern "C" {
 #include "utils/ustdlib.h"
 #include <stdint.h>
 
+#include "rc_cmds.h"
+#include "timer.h"
+#include "servo.h"
+#include "INA226.h"
+
 #define SYSTICKS_PER_SECOND     1000
+
+//HEARTBEAT
+#define TICKS_PER_SECOND 		1000
+
+// servo and drive
+#define MAX_PWM_STEER		100
+#define MAX_PWM_DRIVE		10000
+
+
+void setupADC(void);
+void configurePWM(void);
+void startConversion0(unsigned long int * values);
+void updateADCValues(unsigned long int * values);
+void drive_pwm(int pwm, bool brake);
+uint32_t millis();
+
 
 static unsigned long milliSec = 0;
 
 void SysTickHandler()
 {
 	milliSec++;
+
+	if(millis() - ferrari288gto.last_millis > THRESHOLD_BETWEEN_MSG)
+	{
+		ferrari288gto.Drive = 0;
+		ferrari288gto.Steer = SERVO_CENTER_ANGLE;
+
+		drive_pwm(0,0);
+
+		servo_setPosition(ferrari288gto.Steer);
+	}
 }
 
 uint32_t millis(){
 	return milliSec;
 }
-
-
-
-
 
 void InitConsole(void)
 {
@@ -55,9 +84,19 @@ void InitConsole(void)
 
 
 }
+// testes
+int min1 = 1023, max1 = 0, min2 = 1023, max2 = 0;
+
+
 
 #include "rf24/RF24.h"
+#include "remote_defines.h"
 static unsigned long ulClockMS=0;
+
+bool convert_values(RC_remote &in, struct rc_cmds &out);
+
+
+#define DEBUG
 
 int main(void)
 {
@@ -83,27 +122,56 @@ int main(void)
 
 	InitConsole();
 
-	RF24 radio = RF24();
+	RC_remote ferrari;
+	ferrari.linear = 0;
+	ferrari.steer = 0;
+	ferrari.buttons = 0;
+
+#ifdef DEBUG
+	UARTprintf("Setting up Servo ... \n");
+#endif
+	servo_init();
+	servo_setPosition(90);
+
+#ifdef DEBUG
+	UARTprintf("Setting up PWM ... \n");
+#endif
+	configurePWM();
+
+//#ifdef DEBUG
+//	UARTprintf("Setting up ADC ... \n");
+//#endif
+//	setupADC();
+
+#ifdef DEBUG
+    UARTprintf("SysCtlPeripheralEnable(SYSCTL_PERIPH_I2C0)\n");
+#endif
+
+#ifdef USE_I2C
+    //I2C
+    SysCtlPeripheralEnable(SYSCTL_PERIPH_I2C0);
+    SysCtlPeripheralEnable(SYSCTL_PERIPH_GPIOB);
+#ifdef DEBUG
+    UARTprintf("I2C configured\n");
+#endif
+#endif
+
+#ifdef USE_INA226
+    INA226 power_meter = INA226(0x45);
+    power_meter.set_sample_average(4);
+    power_meter.set_sample_average(16);
+    power_meter.set_calibration_value(445);
+    power_meter.set_bus_voltage_limit(6.2);
+    power_meter.set_mask_enable_register(BUS_UNDER_LIMIT);
+#endif
+
+#ifdef USE_NRF24
+    RF24 radio = RF24();
 
 	// Radio pipe addresses for the 2 nodes to communicate.
 	const uint64_t pipes[2] = { 0xF0F0F0F0E1LL, 0xF0F0F0F0D2LL };
 
-	// The debug-friendly names of those roles
-	const char* role_friendly_name[] = { "invalid", "Ping out", "Pong back"};
-
-	// The various roles supported by this sketch
-	typedef enum { role_ping_out = 1, role_pong_back } role_e;
-
-	// The role of the current running sketch
-	role_e role;
-	role = role_ping_out;
-
-	UARTprintf("\n\rRF24/examples/pingpair/\n\r");
-	UARTprintf("ROLE: %s\n\r",role_friendly_name[role]);
-
-	//
 	// Setup and configure rf radio
-	//
 	radio.begin();
 
 	// optionally, increase the delay between retries & # of retries
@@ -111,132 +179,248 @@ int main(void)
 
 	// optionally, reduce the payload size.  seems to
 	// improve reliability
-	radio.setPayloadSize(8);
+	radio.setPayloadSize(sizeof(RC_remote));
 
-	radio.setDataRate(RF24_2MBPS);
+	radio.setDataRate(RF24_250KBPS);
 
-	//
 	// Open pipes to other nodes for communication
-	//
+	radio.openWritingPipe(pipes[1]);
+	radio.openReadingPipe(1,pipes[0]);
 
-	// This simple sketch opens two pipes for these two nodes to communicate
-	// back and forth.
-	// Open 'our' pipe for writing
-	// Open the 'other' pipe for reading, in position #1 (we can have up to 5 pipes open for reading)
+	// Start listening
+	radio.startListening();
 
-	if ( role == role_ping_out )
+#ifdef DEBUG
+	// Dump the configuration of the rf unit for debugging
+	radio.printDetails();
+#endif
+
+#endif
+	while (1)
 	{
-		radio.openWritingPipe(pipes[0]);
-		radio.openReadingPipe(1,pipes[1]);
+		// if there is data ready
+		if ( radio.available() )
+		{
+			bool done = false;
+			while (!done)
+			{
+
+				// Fetch the payload, and see if this was the last one.
+				done = radio.read( &ferrari, sizeof(RC_remote));
+
+				if(done)
+				{
+
+					ferrari288gto.last_millis = millis();
+#ifdef DEBUG
+					UARTprintf("l = %d, a = %d\n",ferrari.linear,ferrari.steer);
+#endif
+					convert_values(ferrari, ferrari288gto);
+
+#ifdef DEBUG
+					UARTprintf("L = %d, A = %d\n",(int)ferrari288gto.Drive, (int)ferrari288gto.Steer);
+#endif
+					servo_setPosition(ferrari288gto.Steer);
+					drive_pwm(ferrari288gto.Drive, 0);
+
+					//SysCtlDelay(50*ulClockMS);
+				}
+			}
+		}
+	}
+}
+
+
+void setupADC(void)
+{
+
+//	//Enable ADC0
+//	SysCtlPeripheralEnable(SYSCTL_PERIPH_GPIOE);
+//	SysCtlPeripheralEnable(SYSCTL_PERIPH_ADC0);
+//	GPIOPinTypeADC(GPIO_PORTE_BASE, GPIO_PIN_3 | GPIO_PIN_2);
+//
+//    //
+//    // Enable the first sample sequencer to capture the value of channel 0 when
+//    // the processor trigger occurs.
+//    //
+//	ADCSequenceDisable(ADC_BASE, 0);
+//	ADCSequenceEnable(ADC_BASE, 0);
+//	ADCSequenceConfigure(ADC_BASE, 0, ADC_TRIGGER_PROCESSOR, 0);
+//	ADCSequenceStepConfigure(ADC_BASE, 0, BATTERY_ADC, ADC_CTL_IE | ADC_CTL_END | ADC_CTL_CH1 );
+//	ADCSoftwareOversampleConfigure(ADC_BASE, 0, 4);
+//
+//	ADCIntClear(ADC_BASE, 0);
+
+}
+
+void startConversion0(unsigned long int * values)
+{
+	//
+	// Trigger the sample sequence.
+	//
+	ADCProcessorTrigger(ADC_BASE, 0);
+	//
+	// Wait until the sample sequence has completed.
+	//
+	while(!ADCIntStatus(ADC_BASE, 0, false))
+	{
+	}
+
+	ADCIntClear(ADC_BASE, 0);
+
+
+	//
+	// Read the value from the ADC.
+	//
+	ADCSequenceDataGet(ADC_BASE, 0, values);
+
+	updateADCValues(values);
+
+}
+
+void updateADCValues(unsigned long int * values)
+{
+	//ferrari_steer_pid.current_pos = values[STEER_ADC];
+	// TODO: conversion factor
+	// 662 * 3300 /1024
+	//ferrari288gto_param.battery_voltage = values[BATTERY_ADC]*1;
+
+
+	//max1 = values[0];
+	//max2 = values[1];
+
+}
+
+void configurePWM(void)
+{
+	SysCtlPeripheralEnable(SYSCTL_PERIPH_PWM);
+	SysCtlPeripheralEnable(SYSCTL_PERIPH_GPIOA);
+	SysCtlPeripheralEnable(SYSCTL_PERIPH_GPIOC);
+	GPIOPinTypePWM(GPIO_PORTA_BASE, GPIO_PIN_6 | GPIO_PIN_7);
+	GPIOPinTypePWM(GPIO_PORTC_BASE, GPIO_PIN_4 | GPIO_PIN_6);
+
+	PWMGenConfigure(PWM_BASE,PWM_GEN_2,PWM_GEN_MODE_UP_DOWN|PWM_GEN_MODE_NO_SYNC);
+	PWMGenConfigure(PWM_BASE,PWM_GEN_3,PWM_GEN_MODE_UP_DOWN|PWM_GEN_MODE_NO_SYNC);
+
+	PWMGenPeriodSet(PWM_BASE, PWM_GEN_2, MAX_PWM_DRIVE);		// Drive PWM
+	PWMGenPeriodSet(PWM_BASE, PWM_GEN_3, MAX_PWM_DRIVE);		// Drive PWM
+
+	PWMOutputState(PWM_BASE, (PWM_OUT_4_BIT | PWM_OUT_5_BIT|PWM_OUT_7_BIT | PWM_OUT_6_BIT), true);
+	PWMGenEnable(PWM_BASE, PWM_GEN_2);
+	PWMGenEnable(PWM_BASE, PWM_GEN_3);
+
+	PWMPulseWidthSet(PWM_BASE, PWM_OUT_4, 0);
+	PWMPulseWidthSet(PWM_BASE, PWM_OUT_5, 0);
+	PWMPulseWidthSet(PWM_BASE, PWM_OUT_6, 0);
+	PWMPulseWidthSet(PWM_BASE, PWM_OUT_7, 0);
+
+
+}
+
+void drive_pwm(int pwm, bool brake)
+{
+	if(!brake)
+	{
+		//write pwm vales
+		if(pwm < 0 && pwm > -128)
+		{
+			PWMPulseWidthSet(PWM_BASE, PWM_OUT_4, 0);
+			PWMPulseWidthSet(PWM_BASE, PWM_OUT_5, (PWMGenPeriodGet(PWM_BASE, PWM_GEN_2)-5) * -pwm / 128);
+		}
+		else if(pwm >= 0 && pwm < 128)
+		{
+			PWMPulseWidthSet(PWM_BASE, PWM_OUT_5, 0);
+			PWMPulseWidthSet(PWM_BASE, PWM_OUT_4, (PWMGenPeriodGet(PWM_BASE, PWM_GEN_2)-5) * pwm / 128);
+		}
+		else if(pwm >= 128)
+		{
+			PWMPulseWidthSet(PWM_BASE, PWM_OUT_5, 0);
+			PWMPulseWidthSet(PWM_BASE, PWM_OUT_4, MAX_PWM_DRIVE - 5);
+		}
+		else if(pwm <= -128)
+		{
+			PWMPulseWidthSet(PWM_BASE, PWM_OUT_5, MAX_PWM_DRIVE - 5);
+			PWMPulseWidthSet(PWM_BASE, PWM_OUT_4, 0);
+		}
 	}
 	else
 	{
-		radio.openWritingPipe(pipes[1]);
-		radio.openReadingPipe(1,pipes[0]);
+		//TODO : slow decay
 	}
-
-	//
-	// Start listening
-	//
-
-	radio.startListening();
-
-	//
-	// Dump the configuration of the rf unit for debugging
-	//
-
-	radio.printDetails();
-
-
-
-	while (1) {
-
-		//
-		// Ping out role.  Repeatedly send the current time
-		//
-
-		if (role == role_ping_out)
-		{
-			// First, stop listening so we can talk.
-			radio.stopListening();
-
-			// Take the time, and send it.  This will block until complete
-			unsigned long time = millis();
-			UARTprintf("Now sending %u...",time);
-			bool ok = radio.write( &time, sizeof(unsigned long) );
-
-			if (ok)
-				UARTprintf("ok...");
-			else
-				UARTprintf("failed.\n\r");
-
-			// Now, continue listening
-			radio.startListening();
-
-			// Wait here until we get a response, or timeout (250ms)
-			unsigned long started_waiting_at = millis();
-			bool timeout = false;
-			while ( ! radio.available() && ! timeout )
-				if (millis() - started_waiting_at > 200 )
-					timeout = true;
-
-			// Describe the results
-			if ( timeout )
-			{
-				UARTprintf("Failed, response timed out.\n\r");
-			}
-			else
-			{
-				// Grab the response, compare, and send to debugging spew
-				unsigned long got_time;
-				radio.read( &got_time, sizeof(unsigned long) );
-
-				// Spew it
-				UARTprintf("Got response %u, round-trip delay: %u\n\r",got_time,millis()-got_time);
-			}
-
-			// Try again 1s later
-			MAP_SysCtlDelay(ulClockMS*1000);
-		}
-
-		//
-		// Pong back role.  Receive each packet, dump it out, and send it back
-		//
-
-		if ( role == role_pong_back )
-		{
-			// if there is data ready
-			if ( radio.available() )
-			{
-				// Dump the payloads until we've gotten everything
-				unsigned long got_time;
-				bool done = false;
-				while (!done)
-				{
-					// Fetch the payload, and see if this was the last one.
-					done = radio.read( &got_time, sizeof(unsigned long) );
-
-					// Spew it
-					UARTprintf("Got payload %u...",got_time);
-
-					// Delay just a little bit to let the other unit
-					// make the transition to receiver
-					MAP_SysCtlDelay(ulClockMS*20);
-				}
-
-				// First, stop listening so we can talk
-				radio.stopListening();
-
-				// Send the final one back.
-				radio.write( &got_time, sizeof(unsigned long) );
-				UARTprintf("Sent response.\n\r");
-
-				// Now, resume listening so we catch the next packets.
-				radio.startListening();
-			}
-		}
-
-	}
-
 }
+
+bool convert_values(RC_remote &in, struct rc_cmds &out)
+{
+	int d,s;
+
+	d = in.linear;
+	s = in.steer;
+
+	if(d == 0){
+		out.Drive = DRV_ZERO;
+	}
+	else if(d <= -127)
+	{
+		out.Drive = DRV_REAR;
+	}
+	else if(d >= 127)
+	{
+		out.Drive = DRV_FRONT;
+	}
+	else if(d < 0 && d > -127)
+	{
+		out.Drive = (-d * (DRV_REAR - DRV_ZERO))/(127) + DRV_ZERO;
+	}
+	else if(d > 0 && d < 127)
+	{
+		out.Drive = ((d * (DRV_FRONT - DRV_ZERO))/127) + DRV_ZERO;
+	}
+
+	if(s == 0)
+	{
+		out.Steer = SERVO_CENTER_ANGLE;
+	}
+	else if(s <= -127)
+	{
+		out.Steer = SERVO_LEFT_ANGLE;
+	}
+	else if(s >= 127)
+	{
+		out.Steer = SERVO_RIGHT_ANGLE;
+	}
+	else if(s < 0 && s > -127)
+	{
+		out.Steer = (-s * (SERVO_LEFT_ANGLE - SERVO_CENTER_ANGLE))/(127) + SERVO_CENTER_ANGLE;
+	}
+	else if(s > 0 && s < 127)
+	{
+		out.Steer = ((s * (SERVO_RIGHT_ANGLE - SERVO_CENTER_ANGLE))/127) + SERVO_CENTER_ANGLE;
+	}
+
+	return true;
+}
+//void drive_pwm(void)
+//{
+//	//write pwm vales
+//	if(ferrari288gto.Drive < 0 && ferrari288gto.Drive > -100)
+//	{
+//		PWMPulseWidthSet(PWM_BASE, PWM_OUT_4, 0);
+//		PWMPulseWidthSet(PWM_BASE, PWM_OUT_5, (PWMGenPeriodGet(PWM_BASE, PWM_GEN_2)-5) * -ferrari288gto.Drive / 100);
+//	}
+//	else if(ferrari288gto.Drive >= 0 && ferrari288gto.Drive < 100)
+//	{
+//		PWMPulseWidthSet(PWM_BASE, PWM_OUT_5, 0);
+//		PWMPulseWidthSet(PWM_BASE, PWM_OUT_4, (PWMGenPeriodGet(PWM_BASE, PWM_GEN_2)-5) * ferrari288gto.Drive / 100);
+//	}
+//	else if(ferrari288gto.Drive >= 100)
+//	{
+//		PWMPulseWidthSet(PWM_BASE, PWM_OUT_5, 0);
+//		PWMPulseWidthSet(PWM_BASE, PWM_OUT_4, MAX_PWM_DRIVE - 5);
+//	}
+//	else if(ferrari288gto.Drive <= -100)
+//	{
+//		PWMPulseWidthSet(PWM_BASE, PWM_OUT_5, MAX_PWM_DRIVE - 5);
+//		PWMPulseWidthSet(PWM_BASE, PWM_OUT_4, 0);
+//	}
+//}
 
