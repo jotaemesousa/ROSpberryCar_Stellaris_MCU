@@ -15,10 +15,6 @@
 #define COM_SERVO_RIGHT	737
 #define COM_SERVO_LEFT	536
 
-#define SERVO_ZERO		80
-#define SERVO_LEFT		116
-#define SERVO_RIGHT		40
-
 #define DRV_ZERO		0
 #define DRV_REAR		-50
 #define DRV_FRONT		50
