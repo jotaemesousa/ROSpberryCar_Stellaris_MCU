@@ -95,7 +95,7 @@ int min1 = 1023, max1 = 0, min2 = 1023, max2 = 0;
 static unsigned long ulClockMS=0;
 
 bool convert_values(RC_remote &in, struct rc_cmds &out);
-
+void updateLights(RC_remote &in);
 
 #define DEBUG
 
@@ -216,12 +216,12 @@ int main(void)
 				{
 
 					ferrari288gto.last_millis = millis();
-#ifdef DEBUG
+#ifdef DEBUG_CMD
 					UARTprintf("l = %d, a = %d\n",ferrari.linear,ferrari.steer);
 #endif
 					convert_values(ferrari, ferrari288gto);
 
-#ifdef DEBUG
+#ifdef DEBUG_CMD
 					UARTprintf("L = %d, A = %d\n",(int)ferrari288gto.Drive, (int)ferrari288gto.Steer);
 #endif
 					servo_setPosition(ferrari288gto.Steer);
@@ -244,6 +244,9 @@ int main(void)
 						radio.write(&temp, sizeof(uint8_t));
 						radio.startListening();
 					}
+
+
+					updateLights(ferrari);
 					//SysCtlDelay(50*ulClockMS);
 				}
 			}
@@ -379,6 +382,88 @@ void drive_pwm(int pwm, bool brake)
 	{
 		//TODO : slow decay
 	}
+}
+
+void updateLights(RC_remote &in)
+{
+	static uint8_t last_buttons = 0, front_state = 0, tail_state = 0;
+
+	if((in.buttons & R2_BUTTON) == R2_BUTTON)
+	{
+		if((last_buttons & R2_BUTTON) != R2_BUTTON)
+		{
+			front_state ++;
+			tail_state ++;
+			if(front_state > 3) front_state = 3;
+			if(tail_state > 3) tail_state = 3;
+#ifdef DEBUG
+			UARTprintf("R2\n");
+#endif
+		}
+	}
+	else if((in.buttons & L2_BUTTON) == L2_BUTTON)
+	{
+		if((last_buttons & L2_BUTTON) != L2_BUTTON)
+		{
+			front_state --;
+			tail_state--;
+			if(front_state < 0) front_state = 0;
+			if(tail_state < 0) tail_state = 0;
+#ifdef DEBUG
+			UARTprintf("L2\n");
+#endif
+		}
+	}
+
+	switch (front_state)
+	{
+	case 0:
+		PWMPulseWidthSet(PWM_BASE, PWM_OUT_6, 0);
+		break;
+
+	case 1:
+		PWMPulseWidthSet(PWM_BASE, PWM_OUT_6, PWMGenPeriodGet(PWM_BASE, PWM_GEN_3) / 6);
+		break;
+
+	case 2:
+		PWMPulseWidthSet(PWM_BASE, PWM_OUT_6, PWMGenPeriodGet(PWM_BASE, PWM_GEN_3) / 2);
+		break;
+
+	case 3:
+		PWMPulseWidthSet(PWM_BASE, PWM_OUT_6, PWMGenPeriodGet(PWM_BASE, PWM_GEN_3)-5);
+		break;
+	}
+
+	switch(tail_state)
+	{
+	case 0:
+		if((in.buttons & R1_BUTTON) == R1_BUTTON)
+		{
+			PWMPulseWidthSet(PWM_BASE, PWM_OUT_7, PWMGenPeriodGet(PWM_BASE, PWM_GEN_3) - 5);
+		}
+		else
+		{
+			PWMPulseWidthSet(PWM_BASE, PWM_OUT_7, 0);
+		}
+		break;
+	case 1:
+	case 2:
+	case 3:
+
+		if((in.buttons & R1_BUTTON) == R1_BUTTON)
+		{
+			PWMPulseWidthSet(PWM_BASE, PWM_OUT_7, PWMGenPeriodGet(PWM_BASE, PWM_GEN_3) - 5);
+		}
+		else
+		{
+			PWMPulseWidthSet(PWM_BASE, PWM_OUT_7, PWMGenPeriodGet(PWM_BASE, PWM_GEN_3) / 3);
+		}
+		break;
+
+	}
+
+	last_buttons = in.buttons;
+
 }
 
 bool convert_values(RC_remote &in, struct rc_cmds &out)
