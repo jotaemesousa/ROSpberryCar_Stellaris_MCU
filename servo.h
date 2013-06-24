@@ -9,9 +9,9 @@
 #define SERVO_H_
 
 // Servo Settings
-#define SERVO_CENTER_ANGLE		93 //97
-#define SERVO_LEFT_ANGLE		130 //133
-#define SERVO_RIGHT_ANGLE		49
+#define SERVO_CENTER_ANGLE		97 //97
+#define SERVO_LEFT_ANGLE		132//133
+#define SERVO_RIGHT_ANGLE		55
 
 
 void servo_init();

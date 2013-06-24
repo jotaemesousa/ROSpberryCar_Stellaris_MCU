@@ -24,7 +24,7 @@ extern "C" {
 #include "INA226.h"
 
 #define SYSTICKS_PER_SECOND     1000
-
+#define ASK_BIT			0x10
 //HEARTBEAT
 #define TICKS_PER_SECOND 		1000
 
@@ -35,6 +35,7 @@ extern "C" {
 
 void setupADC(void);
 void configurePWM(void);
+void configureGPIO(void);
 void startConversion0(unsigned long int * values);
 void updateADCValues(unsigned long int * values);
 void drive_pwm(int pwm, bool brake);
@@ -137,6 +138,7 @@ int main(void)
 	UARTprintf("Setting up PWM ... \n");
 #endif
 	configurePWM();
+	configureGPIO();
 
 //#ifdef DEBUG
 //	UARTprintf("Setting up ADC ... \n");
@@ -225,6 +227,23 @@ int main(void)
 					servo_setPosition(ferrari288gto.Steer);
 					drive_pwm(ferrari288gto.Drive, 0);
 
+					if((ferrari.buttons & ASK_BIT) == ASK_BIT)
+					{
+						uint8_t temp;
+						temp = GPIOPinRead(GPIO_PORTE_BASE, GPIO_PIN_1);
+
+#ifdef DEBUG
+						UARTprintf("portE1 = %x\n", temp);
+#endif
+						temp = (temp & GPIO_PIN_1) == GPIO_PIN_1 ? 0 : 1;
+
+#ifdef DEBUG
+						UARTprintf("sent = %d\n", temp);
+#endif
+						radio.stopListening();
+						radio.write(&temp, sizeof(uint8_t));
+						radio.startListening();
+					}
 					//SysCtlDelay(50*ulClockMS);
 				}
 			}
@@ -316,6 +335,17 @@ void configurePWM(void)
 	PWMPulseWidthSet(PWM_BASE, PWM_OUT_6, 0);
 	PWMPulseWidthSet(PWM_BASE, PWM_OUT_7, 0);
 
+}
+
+void configureGPIO(void)
+{
+	SysCtlPeripheralEnable(SYSCTL_PERIPH_GPIOE);
+	MAP_GPIOPinTypeUART(GPIO_PORTE_BASE, GPIO_PIN_0 | GPIO_PIN_1);
+
+	// PE0 = Alert ina226
+	// PE1 = IRQ MPU6050
+
+	GPIOPinTypeGPIOInput(GPIO_PORTE_BASE, GPIO_PIN_0 | GPIO_PIN_1);
 
 }
 
@@ -358,24 +388,36 @@ bool convert_values(RC_remote &in, struct rc_cmds &out)
 	d = in.linear;
 	s = in.steer;
 
+	int max_vel_fwd = 0, max_vel_rev = 0;
+	if((in.buttons & L1_BUTTON) == L1_BUTTON)
+	{
+		max_vel_fwd = DRV_FRONT_N2O;
+		max_vel_rev = DRV_REAR_N2O;
+	}
+	else
+	{
+		max_vel_fwd = DRV_FRONT;
+		max_vel_rev = DRV_REAR;
+	}
+
 	if(d == 0){
 		out.Drive = DRV_ZERO;
 	}
 	else if(d <= -127)
 	{
-		out.Drive = DRV_REAR;
+		out.Drive = max_vel_rev;
 	}
 	else if(d >= 127)
 	{
-		out.Drive = DRV_FRONT;
+		out.Drive = max_vel_fwd;
 	}
 	else if(d < 0 && d > -127)
 	{
-		out.Drive = (-d * (DRV_REAR - DRV_ZERO))/(127) + DRV_ZERO;
+		out.Drive = (-d * (max_vel_rev - DRV_ZERO))/(127) + DRV_ZERO;
 	}
 	else if(d > 0 && d < 127)
 	{
-		out.Drive = ((d * (DRV_FRONT - DRV_ZERO))/127) + DRV_ZERO;
+		out.Drive = ((d * (max_vel_fwd - DRV_ZERO))/127) + DRV_ZERO;
 	}
 
 	if(s == 0)

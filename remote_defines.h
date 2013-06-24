@@ -20,10 +20,18 @@
 #define SERVO_RIGHT		40
 
 #define DRV_ZERO		0
-#define DRV_REAR		-70
-#define DRV_FRONT		70
+#define DRV_REAR		-50
+#define DRV_FRONT		50
+#define DRV_REAR_N2O	-70
+#define DRV_FRONT_N2O	70
 
 #define SEND_MSG_TIME	500
+
+#define L1_BUTTON		0x01
+#define R1_BUTTON		0x04
+#define L2_BUTTON		0x02
+#define R2_BUTTON		0x08
+#define ASK_BIT			0x10
 
 
 typedef struct ROSpberryRemote
