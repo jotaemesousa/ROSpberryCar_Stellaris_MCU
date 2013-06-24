@@ -151,6 +151,9 @@ int main(void)
     //I2C
     SysCtlPeripheralEnable(SYSCTL_PERIPH_I2C0);
     SysCtlPeripheralEnable(SYSCTL_PERIPH_GPIOB);
+    GPIOPinTypeI2C(GPIO_PORTB_BASE,GPIO_PIN_2 | GPIO_PIN_3);
+    I2CMasterInitExpClk(I2C0_MASTER_BASE,SysCtlClockGet(),false);  //false = 100khz , true = 400khz
+    I2CMasterTimeoutSet(I2C0_MASTER_BASE, 1000);
 #ifdef DEBUG
     UARTprintf("I2C configured\n");
 #endif
@@ -159,9 +162,8 @@ int main(void)
 #ifdef USE_INA226
     INA226 power_meter = INA226(0x45);
     power_meter.set_sample_average(4);
-    power_meter.set_sample_average(16);
     power_meter.set_calibration_value(445);
-    power_meter.set_bus_voltage_limit(6.2);
+    power_meter.set_bus_voltage_limit(7.0);
     power_meter.set_mask_enable_register(BUS_UNDER_LIMIT);
 #endif
 
