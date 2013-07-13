@@ -346,7 +346,7 @@ void RF24::begin(void)
 {
 
   // Initialize SPI bus , CS and CE pins
-  spi_init(10000000,8);
+  spi_init(5000000,8);
 
   ce(LOW);
   csn(HIGH);

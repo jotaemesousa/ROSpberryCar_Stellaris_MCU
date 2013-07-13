@@ -22,15 +22,24 @@ extern "C" {
 #include "timer.h"
 #include "servo.h"
 #include "INA226.h"
+#include "Encoder.h"
+
+// use sensors
+#define USE_I2C
+#define USE_INA226
 
 #define SYSTICKS_PER_SECOND     1000
-#define ASK_BIT			0x10
-//HEARTBEAT
+
+// HEARTBEAT
 #define TICKS_PER_SECOND 		1000
 
 // servo and drive
-#define MAX_PWM_STEER		100
-#define MAX_PWM_DRIVE		10000
+#define MAX_PWM_STEER			100
+#define MAX_PWM_DRIVE			10000
+
+// debug
+#define DEBUG
+#define DEBUG_CMD
 
 
 void setupADC(void);
@@ -40,7 +49,6 @@ void startConversion0(unsigned long int * values);
 void updateADCValues(unsigned long int * values);
 void drive_pwm(int pwm, bool brake);
 uint32_t millis();
-
 
 static unsigned long milliSec = 0;
 
@@ -59,7 +67,8 @@ void SysTickHandler()
 	}
 }
 
-uint32_t millis(){
+uint32_t millis()
+{
 	return milliSec;
 }
 
@@ -94,10 +103,12 @@ int min1 = 1023, max1 = 0, min2 = 1023, max2 = 0;
 #include "remote_defines.h"
 static unsigned long ulClockMS=0;
 
-bool convert_values(RC_remote &in, struct rc_cmds &out);
+unsigned long last_dongle_millis = 0, last_car_param_millis = 0;
+
+bool convert_values(RC_remote &in, RC_Param &car_param, struct rc_cmds &out);
 void updateLights(RC_remote &in);
 
-#define DEBUG
+
 
 int main(void)
 {
@@ -128,6 +139,9 @@ int main(void)
 	ferrari.steer = 0;
 	ferrari.buttons = 0;
 
+	RC_Param car_param;
+
+
 #ifdef DEBUG
 	UARTprintf("Setting up Servo ... \n");
 #endif
@@ -140,10 +154,10 @@ int main(void)
 	configurePWM();
 	configureGPIO();
 
-//#ifdef DEBUG
-//	UARTprintf("Setting up ADC ... \n");
-//#endif
-//	setupADC();
+	UARTprintf("Starting QEI...");
+	encoder_init();
+	UARTprintf("done\n");
+
 
 #ifdef DEBUG
     UARTprintf("SysCtlPeripheralEnable(SYSCTL_PERIPH_I2C0)\n");
@@ -173,7 +187,7 @@ int main(void)
     RF24 radio = RF24();
 
 	// Radio pipe addresses for the 2 nodes to communicate.
-	const uint64_t pipes[2] = { 0xF0F0F0F0E1LL, 0xF0F0F0F0D2LL };
+	const uint64_t pipes[3] = { 0xF0F0F0F0E1LL, 0xF0F0F0F0D2LL, 0xF0F0F0F0C3LL};
 
 	// Setup and configure rf radio
 	radio.begin();
@@ -219,7 +233,7 @@ int main(void)
 #ifdef DEBUG_CMD
 					UARTprintf("l = %d, a = %d\n",ferrari.linear,ferrari.steer);
 #endif
-					convert_values(ferrari, ferrari288gto);
+					convert_values(ferrari, car_param, ferrari288gto);
 
 #ifdef DEBUG_CMD
 					UARTprintf("L = %d, A = %d\n",(int)ferrari288gto.Drive, (int)ferrari288gto.Steer);
@@ -250,6 +264,30 @@ int main(void)
 					//SysCtlDelay(50*ulClockMS);
 				}
 			}
+		}
+
+		if(millis() - last_car_param_millis > CAR_PARAM_MILLIS)
+		{
+			last_car_param_millis = millis();
+
+			int16_t l_vel, r_vel;
+			encoder_get_velocity(&l_vel, &r_vel, millis());
+			car_param.velocity = (l_vel + r_vel)/2;
+			car_param.batery_level = power_meter.get_bus_voltage();
+			car_param.x = 0;
+			car_param.y = 0;
+		}
+
+		if(millis() - last_dongle_millis > DONGLE_MILLIS)
+		{
+			last_dongle_millis = millis();
+
+			radio.stopListening();
+			radio.openWritingPipe(pipes[2]);
+
+			radio.write(&car_param, sizeof(RC_Param));
+			radio.openWritingPipe(pipes[1]);
+			radio.startListening();
 		}
 	}
 }
@@ -466,12 +504,33 @@ void updateLights(RC_remote &in)
 
 }
 
-bool convert_values(RC_remote &in, struct rc_cmds &out)
+bool convert_values(RC_remote &in, RC_Param &car_param, struct rc_cmds &out)
 {
+	float steer_factor = 1;
+	static bool steer_mode = 0;
+
+	if(car_param.velocity < VEL_STEER_MIN && steer_mode == 1)
+	{
+		steer_factor = 1;
+		steer_mode = 0;
+	}
+	else if(car_param.velocity > VEL_STEER_MAX && steer_mode == 0)
+	{
+		if(in.steer > 0)
+		{
+			steer_factor = (pow(in.steer / 127.0, 2) + in.steer/127.0) / 2.0;
+		}
+		else
+		{
+			steer_factor = (pow(in.steer / 127.0, 2) - in.steer/127.0) / 2.0;
+		}
+		steer_mode = 0;
+	}
+
 	int d,s;
 
 	d = in.linear;
-	s = in.steer;
+	s = in.steer * steer_factor;
 
 	int max_vel_fwd = 0, max_vel_rev = 0;
 	if((in.buttons & L1_BUTTON) == L1_BUTTON)
