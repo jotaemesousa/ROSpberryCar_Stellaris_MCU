@@ -58,6 +58,16 @@ void encoder_read(int *left_c, int *right_c)
 //	UARTprintf("right counter (read) : %d\n", right_counter);
 }
 
+void encoder_read_reset(int *left_c, int *right_c)
+{
+	*right_c = right_counter;
+	*left_c = left_counter;
+	right_counter = 0;
+	left_counter = 0;
+//	UARTprintf("left counter (read) : %d\n", left_counter);
+//	UARTprintf("right counter (read) : %d\n", right_counter);
+}
+
 void encoder_get_velocity(int16_t *left_vel, int16_t *right_vel, uint32_t time)
 {
 	*left_vel = (left_counter - last_left_counter) * 1000 / (int)(time - last_time_velocity);

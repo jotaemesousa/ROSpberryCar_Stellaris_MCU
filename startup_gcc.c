@@ -11,6 +11,7 @@ static void NmiSR(void);
 static void FaultISR(void);
 static void IntDefaultHandler(void);
 
+extern void UARTStdioIntHandler(void);
 extern void PORTBIntHandler(void);
 extern void PORTDIntHandler(void);
 
@@ -81,7 +82,7 @@ void (* const g_pfnVectors[])(void) =
     IntDefaultHandler,                      // GPIO Port C
     PORTDIntHandler,                      // GPIO Port D
     IntDefaultHandler,                      // GPIO Port E
-    IntDefaultHandler,                      // UART0 Rx and Tx
+    UARTStdioIntHandler,                      // UART0 Rx and Tx
     IntDefaultHandler,                     	// Reserved
     IntDefaultHandler,                      // SSI0 Rx and Tx
     IntDefaultHandler,                      // I2C0 Master and Slave

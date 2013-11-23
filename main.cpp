@@ -1,19 +1,19 @@
 extern "C" {
 #include <math.h>
-#include "inc/hw_memmap.h"
-#include "inc/hw_types.h"
-#include "inc/hw_i2c.h"
-#include "inc/hw_ints.h"
+#include <inc/hw_memmap.h>
+#include <inc/hw_types.h>
+#include <inc/hw_i2c.h>
+#include <inc/hw_ints.h>
 #include <driverlib/adc.h>
-#include "driverlib/interrupt.h"
-#include "driverlib/i2c.h"
-#include "driverlib/pwm.h"
-#include "driverlib/rom.h"
-#include "driverlib/rom_map.h"
-#include "driverlib/sysctl.h"
-#include "driverlib/systick.h"
-#include "driverlib/gpio.h"
-#include "driverlib/uart.h"
+#include <driverlib/interrupt.h>
+#include <driverlib/i2c.h>
+#include <driverlib/pwm.h>
+#include <driverlib/rom.h>
+#include <driverlib/rom_map.h>
+#include <driverlib/sysctl.h>
+#include <driverlib/systick.h>
+#include <driverlib/gpio.h>
+#include <driverlib/uart.h>
 #include "utils/uartstdio.h"
 #include "utils/ustdlib.h"
 #include <stdint.h>
@@ -24,9 +24,10 @@ extern "C" {
 #include "INA226.h"
 #include "Encoder.h"
 
+
 // use sensors
-#define USE_I2C
-#define USE_INA226
+#define USE_I2C_
+#define USE_INA226_
 
 #define SYSTICKS_PER_SECOND     1000
 
@@ -47,25 +48,12 @@ void configurePWM(void);
 void configureGPIO(void);
 void startConversion0(unsigned long int * values);
 void updateADCValues(unsigned long int * values);
-void drive_pwm(int pwm, bool brake);
+void SysTickHandler();
 uint32_t millis();
 
 static unsigned long milliSec = 0;
 
-void SysTickHandler()
-{
-	milliSec++;
 
-	if(millis() - ferrari288gto.last_millis > THRESHOLD_BETWEEN_MSG)
-	{
-		ferrari288gto.Drive = 0;
-		ferrari288gto.Steer = SERVO_CENTER_ANGLE;
-
-		drive_pwm(0,0);
-
-		servo_setPosition(ferrari288gto.Steer);
-	}
-}
 
 uint32_t millis()
 {
@@ -98,7 +86,7 @@ void InitConsole(void)
 int min1 = 1023, max1 = 0, min2 = 1023, max2 = 0;
 
 
-
+#include "comm.h"
 #include "rf24/RF24.h"
 #include "remote_defines.h"
 static unsigned long ulClockMS=0;
@@ -107,6 +95,7 @@ unsigned long last_dongle_millis = 0, last_car_param_millis = 0;
 
 bool convert_values(RC_remote &in, RC_Param &car_param, struct rc_cmds &out);
 void updateLights(RC_remote &in);
+void drive_pwm(int pwm, bool brake);
 
 
 
@@ -133,7 +122,7 @@ int main(void)
 	ulClockMS = MAP_SysCtlClockGet() / (3 * 1000);
 
 	InitConsole();
-
+	UARTEchoSet(false);
 	RC_remote ferrari;
 	ferrari.linear = 0;
 	ferrari.steer = 0;
@@ -160,31 +149,33 @@ int main(void)
 
 
 #ifdef DEBUG
-    UARTprintf("SysCtlPeripheralEnable(SYSCTL_PERIPH_I2C0)\n");
+	UARTprintf("SysCtlPeripheralEnable(SYSCTL_PERIPH_I2C0)\n");
 #endif
 
 #ifdef USE_I2C
-    //I2C
-    SysCtlPeripheralEnable(SYSCTL_PERIPH_I2C0);
-    SysCtlPeripheralEnable(SYSCTL_PERIPH_GPIOB);
-    GPIOPinTypeI2C(GPIO_PORTB_BASE,GPIO_PIN_2 | GPIO_PIN_3);
-    I2CMasterInitExpClk(I2C0_MASTER_BASE,SysCtlClockGet(),false);  //false = 100khz , true = 400khz
-    I2CMasterTimeoutSet(I2C0_MASTER_BASE, 1000);
+	//I2C
+	SysCtlPeripheralEnable(SYSCTL_PERIPH_I2C0);
+	SysCtlPeripheralEnable(SYSCTL_PERIPH_GPIOB);
+	GPIOPinTypeI2C(GPIO_PORTB_BASE,GPIO_PIN_2 | GPIO_PIN_3);
+	I2CMasterInitExpClk(I2C0_MASTER_BASE,SysCtlClockGet(),false);  //false = 100khz , true = 400khz
+	I2CMasterTimeoutSet(I2C0_MASTER_BASE, 1000);
 #ifdef DEBUG
-    UARTprintf("I2C configured\n");
+	UARTprintf("I2C configured\n");
 #endif
 #endif
 
+#ifdef USE_I2C
 #ifdef USE_INA226
-    INA226 power_meter = INA226(0x45);
-    power_meter.set_sample_average(4);
-    power_meter.set_calibration_value(445);
-    power_meter.set_bus_voltage_limit(7.0);
-    power_meter.set_mask_enable_register(BUS_UNDER_LIMIT);
+	INA226 power_meter = INA226(0x45);
+	power_meter.set_sample_average(4);
+	power_meter.set_calibration_value(445);
+	power_meter.set_bus_voltage_limit(7.0);
+	power_meter.set_mask_enable_register(BUS_UNDER_LIMIT);
+#endif
 #endif
 
 #ifdef USE_NRF24
-    RF24 radio = RF24();
+	RF24 radio = RF24();
 
 	// Radio pipe addresses for the 2 nodes to communicate.
 	const uint64_t pipes[3] = { 0xF0F0F0F0E1LL, 0xF0F0F0F0D2LL, 0xF0F0F0F0C3LL};
@@ -216,79 +207,83 @@ int main(void)
 #endif
 	while (1)
 	{
+#ifdef USE_NRF24
 		// if there is data ready
-		if ( radio.available() )
-		{
-			bool done = false;
-			while (!done)
-			{
-
-				// Fetch the payload, and see if this was the last one.
-				done = radio.read( &ferrari, sizeof(RC_remote));
-
-				if(done)
-				{
-
-					ferrari288gto.last_millis = millis();
-#ifdef DEBUG_CMD
-					UARTprintf("l = %d, a = %d\n",ferrari.linear,ferrari.steer);
+		//		if ( radio.available() )
+		//		{
+		//			bool done = false;
+		//			while (!done)
+		//			{
+		//
+		//				// Fetch the payload, and see if this was the last one.
+		//				done = radio.read( &ferrari, sizeof(RC_remote));
+		//
+		//				if(done)
+		//				{
+		//
+		//					ferrari288gto.last_millis = millis();
+		//#ifdef DEBUG_CMD
+		//					UARTprintf("l = %d, a = %d\n",ferrari.linear,ferrari.steer);
+		//#endif
+		//					convert_values(ferrari, car_param, ferrari288gto);
+		//
+		//#ifdef DEBUG_CMD
+		//					UARTprintf("L = %d, A = %d\n",(int)ferrari288gto.Drive, (int)ferrari288gto.Steer);
+		//#endif
+		//					servo_setPosition(ferrari288gto.Steer);
+		//					drive_pwm(ferrari288gto.Drive, 0);
+		//
+		//					if((ferrari.buttons & ASK_BIT) == ASK_BIT)
+		//					{
+		//						uint8_t temp;
+		//						temp = GPIOPinRead(GPIO_PORTE_BASE, GPIO_PIN_1);
+		//
+		//#ifdef DEBUG
+		//						UARTprintf("portE1 = %x\n", temp);
+		//#endif
+		//						temp = (temp & GPIO_PIN_1) == GPIO_PIN_1 ? 0 : 1;
+		//
+		//#ifdef DEBUG
+		//						UARTprintf("sent = %d\n", temp);
+		//#endif
+		//						radio.stopListening();
+		//						radio.write(&temp, sizeof(uint8_t));
+		//						radio.startListening();
+		//					}
+		//
+		//
+		//					updateLights(ferrari);
+		//					//SysCtlDelay(50*ulClockMS);
+		//				}
+		//			}
+		//		}
+		//
+		//		if(millis() - last_car_param_millis > CAR_PARAM_MILLIS)
+		//		{
+		//			last_car_param_millis = millis();
+		//
+		//			int16_t l_vel, r_vel;
+		//			encoder_get_velocity(&l_vel, &r_vel, millis());
+		//			car_param.velocity = (l_vel + r_vel)/2;
+		//			car_param.batery_level = power_meter.get_bus_voltage();
+		//			car_param.x = 0;
+		//			car_param.y = 0;
+		//		}
+		//
+		//		if(millis() - last_dongle_millis > DONGLE_MILLIS)
+		//		{
+		//			last_dongle_millis = millis();
+		//
+		//			radio.stopListening();
+		//			radio.openWritingPipe(pipes[2]);
+		//
+		//			radio.write(&car_param, sizeof(RC_Param));
+		//			radio.openWritingPipe(pipes[1]);
+		//			radio.startListening();
+		//		}
 #endif
-					convert_values(ferrari, car_param, ferrari288gto);
 
-#ifdef DEBUG_CMD
-					UARTprintf("L = %d, A = %d\n",(int)ferrari288gto.Drive, (int)ferrari288gto.Steer);
-#endif
-					servo_setPosition(ferrari288gto.Steer);
-					drive_pwm(ferrari288gto.Drive, 0);
-
-					if((ferrari.buttons & ASK_BIT) == ASK_BIT)
-					{
-						uint8_t temp;
-						temp = GPIOPinRead(GPIO_PORTE_BASE, GPIO_PIN_1);
-
-#ifdef DEBUG
-						UARTprintf("portE1 = %x\n", temp);
-#endif
-						temp = (temp & GPIO_PIN_1) == GPIO_PIN_1 ? 0 : 1;
-
-#ifdef DEBUG
-						UARTprintf("sent = %d\n", temp);
-#endif
-						radio.stopListening();
-						radio.write(&temp, sizeof(uint8_t));
-						radio.startListening();
-					}
-
-
-					updateLights(ferrari);
-					//SysCtlDelay(50*ulClockMS);
-				}
-			}
-		}
-
-		if(millis() - last_car_param_millis > CAR_PARAM_MILLIS)
-		{
-			last_car_param_millis = millis();
-
-			int16_t l_vel, r_vel;
-			encoder_get_velocity(&l_vel, &r_vel, millis());
-			car_param.velocity = (l_vel + r_vel)/2;
-			car_param.batery_level = power_meter.get_bus_voltage();
-			car_param.x = 0;
-			car_param.y = 0;
-		}
-
-		if(millis() - last_dongle_millis > DONGLE_MILLIS)
-		{
-			last_dongle_millis = millis();
-
-			radio.stopListening();
-			radio.openWritingPipe(pipes[2]);
-
-			radio.write(&car_param, sizeof(RC_Param));
-			radio.openWritingPipe(pipes[1]);
-			radio.startListening();
-		}
+		serial_receive();
 	}
 }
 
@@ -296,22 +291,22 @@ int main(void)
 void setupADC(void)
 {
 
-//	//Enable ADC0
-//	SysCtlPeripheralEnable(SYSCTL_PERIPH_GPIOE);
-//	SysCtlPeripheralEnable(SYSCTL_PERIPH_ADC0);
-//	GPIOPinTypeADC(GPIO_PORTE_BASE, GPIO_PIN_3 | GPIO_PIN_2);
-//
-//    //
-//    // Enable the first sample sequencer to capture the value of channel 0 when
-//    // the processor trigger occurs.
-//    //
-//	ADCSequenceDisable(ADC_BASE, 0);
-//	ADCSequenceEnable(ADC_BASE, 0);
-//	ADCSequenceConfigure(ADC_BASE, 0, ADC_TRIGGER_PROCESSOR, 0);
-//	ADCSequenceStepConfigure(ADC_BASE, 0, BATTERY_ADC, ADC_CTL_IE | ADC_CTL_END | ADC_CTL_CH1 );
-//	ADCSoftwareOversampleConfigure(ADC_BASE, 0, 4);
-//
-//	ADCIntClear(ADC_BASE, 0);
+	//	//Enable ADC0
+	//	SysCtlPeripheralEnable(SYSCTL_PERIPH_GPIOE);
+	//	SysCtlPeripheralEnable(SYSCTL_PERIPH_ADC0);
+	//	GPIOPinTypeADC(GPIO_PORTE_BASE, GPIO_PIN_3 | GPIO_PIN_2);
+	//
+	//    //
+	//    // Enable the first sample sequencer to capture the value of channel 0 when
+	//    // the processor trigger occurs.
+	//    //
+	//	ADCSequenceDisable(ADC_BASE, 0);
+	//	ADCSequenceEnable(ADC_BASE, 0);
+	//	ADCSequenceConfigure(ADC_BASE, 0, ADC_TRIGGER_PROCESSOR, 0);
+	//	ADCSequenceStepConfigure(ADC_BASE, 0, BATTERY_ADC, ADC_CTL_IE | ADC_CTL_END | ADC_CTL_CH1 );
+	//	ADCSoftwareOversampleConfigure(ADC_BASE, 0, 4);
+	//
+	//	ADCIntClear(ADC_BASE, 0);
 
 }
 
@@ -355,26 +350,45 @@ void updateADCValues(unsigned long int * values)
 
 void configurePWM(void)
 {
-	SysCtlPeripheralEnable(SYSCTL_PERIPH_PWM);
-	SysCtlPeripheralEnable(SYSCTL_PERIPH_GPIOA);
-	SysCtlPeripheralEnable(SYSCTL_PERIPH_GPIOC);
-	GPIOPinTypePWM(GPIO_PORTA_BASE, GPIO_PIN_6 | GPIO_PIN_7);
-	GPIOPinTypePWM(GPIO_PORTC_BASE, GPIO_PIN_4 | GPIO_PIN_6);
+	MAP_SysCtlPeripheralEnable(SYSCTL_PERIPH_PWM);
+	MAP_SysCtlPeripheralEnable(SYSCTL_PERIPH_GPIOA);
+	MAP_SysCtlPeripheralEnable(SYSCTL_PERIPH_GPIOC);
+	MAP_GPIOPinTypePWM(GPIO_PORTA_BASE, GPIO_PIN_6 | GPIO_PIN_7);
 
-	PWMGenConfigure(PWM_BASE,PWM_GEN_2,PWM_GEN_MODE_UP_DOWN|PWM_GEN_MODE_NO_SYNC);
-	PWMGenConfigure(PWM_BASE,PWM_GEN_3,PWM_GEN_MODE_UP_DOWN|PWM_GEN_MODE_NO_SYNC);
+	MAP_PWMGenConfigure(PWM_BASE,PWM_GEN_2,PWM_GEN_MODE_DOWN|PWM_GEN_MODE_NO_SYNC);
+	MAP_PWMGenConfigure(PWM_BASE,PWM_GEN_3,PWM_GEN_MODE_DOWN|PWM_GEN_MODE_NO_SYNC);
 
-	PWMGenPeriodSet(PWM_BASE, PWM_GEN_2, MAX_PWM_DRIVE);		// Drive PWM
-	PWMGenPeriodSet(PWM_BASE, PWM_GEN_3, MAX_PWM_DRIVE);		// Drive PWM
+	MAP_PWMGenPeriodSet(PWM_BASE, PWM_GEN_2, MAX_PWM_DRIVE);		// Drive PWM
+	MAP_PWMGenPeriodSet(PWM_BASE, PWM_GEN_3, MAX_PWM_DRIVE);		// Drive PWM
 
-	PWMOutputState(PWM_BASE, (PWM_OUT_4_BIT | PWM_OUT_5_BIT|PWM_OUT_7_BIT | PWM_OUT_6_BIT), true);
-	PWMGenEnable(PWM_BASE, PWM_GEN_2);
-	PWMGenEnable(PWM_BASE, PWM_GEN_3);
+	MAP_PWMGenEnable(PWM_BASE, PWM_GEN_2);
+	MAP_PWMGenEnable(PWM_BASE, PWM_GEN_3);
 
-	PWMPulseWidthSet(PWM_BASE, PWM_OUT_4, 0);
-	PWMPulseWidthSet(PWM_BASE, PWM_OUT_5, 0);
-	PWMPulseWidthSet(PWM_BASE, PWM_OUT_6, 0);
-	PWMPulseWidthSet(PWM_BASE, PWM_OUT_7, 0);
+	MAP_PWMOutputState(PWM_BASE, PWM_OUT_4_BIT | PWM_OUT_5_BIT, false);
+
+	MAP_GPIOPinTypeGPIOOutput(GPIO_PORTC_BASE, GPIO_PIN_6);
+	MAP_GPIOPinTypeGPIOOutput(GPIO_PORTC_BASE, GPIO_PIN_4);
+
+	//	SysCtlPeripheralEnable(SYSCTL_PERIPH_PWM);
+	//	SysCtlPeripheralEnable(SYSCTL_PERIPH_GPIOA);
+	//	SysCtlPeripheralEnable(SYSCTL_PERIPH_GPIOC);
+	//	GPIOPinTypePWM(GPIO_PORTA_BASE, GPIO_PIN_6 | GPIO_PIN_7);
+	//	GPIOPinTypePWM(GPIO_PORTC_BASE, GPIO_PIN_4 | GPIO_PIN_6);
+	//
+	//	PWMGenConfigure(PWM_BASE,PWM_GEN_2,PWM_GEN_MODE_UP_DOWN|PWM_GEN_MODE_NO_SYNC);
+	//	PWMGenConfigure(PWM_BASE,PWM_GEN_3,PWM_GEN_MODE_UP_DOWN|PWM_GEN_MODE_NO_SYNC);
+	//
+	//	PWMGenPeriodSet(PWM_BASE, PWM_GEN_2, MAX_PWM_DRIVE);		// Drive PWM
+	//	PWMGenPeriodSet(PWM_BASE, PWM_GEN_3, MAX_PWM_DRIVE);		// Drive PWM
+	//
+	//	PWMOutputState(PWM_BASE, (PWM_OUT_4_BIT | PWM_OUT_5_BIT|PWM_OUT_7_BIT | PWM_OUT_6_BIT), true);
+	//	PWMGenEnable(PWM_BASE, PWM_GEN_2);
+	//	PWMGenEnable(PWM_BASE, PWM_GEN_3);
+	//
+	//	PWMPulseWidthSet(PWM_BASE, PWM_OUT_4, 0);
+	//	PWMPulseWidthSet(PWM_BASE, PWM_OUT_5, 0);
+	//	PWMPulseWidthSet(PWM_BASE, PWM_OUT_6, 0);
+	//	PWMPulseWidthSet(PWM_BASE, PWM_OUT_7, 0);
 
 }
 
@@ -395,30 +409,68 @@ void drive_pwm(int pwm, bool brake)
 	if(!brake)
 	{
 		//write pwm vales
-		if(pwm < 0 && pwm > -128)
+		if (pwm==0)
 		{
-			PWMPulseWidthSet(PWM_BASE, PWM_OUT_4, 0);
-			PWMPulseWidthSet(PWM_BASE, PWM_OUT_5, (PWMGenPeriodGet(PWM_BASE, PWM_GEN_2)-5) * -pwm / 128);
+			MAP_PWMOutputState(PWM_BASE, PWM_OUT_4_BIT | PWM_OUT_5_BIT, false);
 		}
-		else if(pwm >= 0 && pwm < 128)
+		else if(pwm > 0 && pwm < 127)
 		{
-			PWMPulseWidthSet(PWM_BASE, PWM_OUT_5, 0);
-			PWMPulseWidthSet(PWM_BASE, PWM_OUT_4, (PWMGenPeriodGet(PWM_BASE, PWM_GEN_2)-5) * pwm / 128);
+			MAP_PWMOutputState(PWM_BASE, PWM_OUT_5_BIT, false);
+			MAP_PWMOutputState(PWM_BASE, PWM_OUT_4_BIT, true);
+			MAP_PWMPulseWidthSet(PWM_BASE, PWM_OUT_4, MAP_PWMGenPeriodGet(PWM_BASE, PWM_GEN_2) * pwm / 127);
+
 		}
-		else if(pwm >= 128)
+		else if (pwm >=127)
 		{
-			PWMPulseWidthSet(PWM_BASE, PWM_OUT_5, 0);
-			PWMPulseWidthSet(PWM_BASE, PWM_OUT_4, MAX_PWM_DRIVE - 5);
+			MAP_PWMOutputState(PWM_BASE, PWM_OUT_5_BIT, false);
+			MAP_PWMOutputState(PWM_BASE, PWM_OUT_4_BIT, true);
+			MAP_PWMPulseWidthSet(PWM_BASE, PWM_OUT_4, MAP_PWMGenPeriodGet(PWM_BASE, PWM_GEN_2));
 		}
-		else if(pwm <= -128)
+		else if ( pwm > -127)
 		{
-			PWMPulseWidthSet(PWM_BASE, PWM_OUT_5, MAX_PWM_DRIVE - 5);
-			PWMPulseWidthSet(PWM_BASE, PWM_OUT_4, 0);
+			MAP_PWMOutputState(PWM_BASE, PWM_OUT_4_BIT, false);
+			MAP_PWMOutputState(PWM_BASE, PWM_OUT_5_BIT, true);
+			MAP_PWMPulseWidthSet(PWM_BASE, PWM_OUT_5, MAP_PWMGenPeriodGet(PWM_BASE, PWM_GEN_2) * -pwm / 127);
+		}
+		else
+		{
+			MAP_PWMOutputState(PWM_BASE, PWM_OUT_4_BIT, false);
+			MAP_PWMOutputState(PWM_BASE, PWM_OUT_5_BIT, true);
+			MAP_PWMPulseWidthSet(PWM_BASE, PWM_OUT_5, MAP_PWMGenPeriodGet(PWM_BASE, PWM_GEN_2));
 		}
 	}
 	else
 	{
-		//TODO : slow decay
+		//write pwm vales
+		if (pwm==0)
+		{
+			MAP_PWMOutputState(PWM_BASE, PWM_OUT_4_BIT | PWM_OUT_5_BIT, false);
+		}
+		else if(pwm > 0 && pwm < 127)
+		{
+			MAP_PWMOutputState(PWM_BASE, PWM_OUT_5_BIT, false);
+			MAP_PWMOutputState(PWM_BASE, PWM_OUT_4_BIT, true);
+			MAP_PWMPulseWidthSet(PWM_BASE, PWM_OUT_4, MAP_PWMGenPeriodGet(PWM_BASE, PWM_GEN_2) * pwm / 127);
+
+		}
+		else if (pwm >=127)
+		{
+			MAP_PWMOutputState(PWM_BASE, PWM_OUT_5_BIT, false);
+			MAP_PWMOutputState(PWM_BASE, PWM_OUT_4_BIT, true);
+			MAP_PWMPulseWidthSet(PWM_BASE, PWM_OUT_4, MAP_PWMGenPeriodGet(PWM_BASE, PWM_GEN_2));
+		}
+		else if ( pwm > -127)
+		{
+			MAP_PWMOutputState(PWM_BASE, PWM_OUT_4_BIT, false);
+			MAP_PWMOutputState(PWM_BASE, PWM_OUT_5_BIT, true);
+			MAP_PWMPulseWidthSet(PWM_BASE, PWM_OUT_5, MAP_PWMGenPeriodGet(PWM_BASE, PWM_GEN_2) * -pwm / 127);
+		}
+		else
+		{
+			MAP_PWMOutputState(PWM_BASE, PWM_OUT_4_BIT, false);
+			MAP_PWMOutputState(PWM_BASE, PWM_OUT_5_BIT, true);
+			MAP_PWMPulseWidthSet(PWM_BASE, PWM_OUT_5, MAP_PWMGenPeriodGet(PWM_BASE, PWM_GEN_2));
+		}
 	}
 }
 
@@ -586,6 +638,21 @@ bool convert_values(RC_remote &in, RC_Param &car_param, struct rc_cmds &out)
 	}
 
 	return true;
+}
+
+void SysTickHandler()
+{
+	milliSec++;
+
+	if(millis() - ferrari288gto.last_millis > THRESHOLD_BETWEEN_MSG)
+	{
+		ferrari288gto.Drive = 0;
+		ferrari288gto.Steer = SERVO_CENTER_ANGLE;
+
+		//drive_pwm(0,0);
+
+		servo_setPosition(ferrari288gto.Steer);
+	}
 }
 //void drive_pwm(void)
 //{

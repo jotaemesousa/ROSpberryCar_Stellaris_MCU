@@ -5,13 +5,13 @@
 			<storageModule buildSystemId="org.eclipse.cdt.managedbuilder.core.configurationDataProvider" id="org.eclipse.cdt.cross.arm.gnu.summon.linux.elf.debug.1225299597" moduleId="org.eclipse.cdt.core.settings" name="Debug">
 				<externalSettings/>
 				<extensions>
-					<extension id="org.eclipse.cdt.core.GNU_ELF" point="org.eclipse.cdt.core.BinaryParser"/>
 					<extension id="org.eclipse.cdt.core.GmakeErrorParser" point="org.eclipse.cdt.core.ErrorParser"/>
 					<extension id="org.eclipse.cdt.core.CWDLocator" point="org.eclipse.cdt.core.ErrorParser"/>
 					<extension id="org.eclipse.cdt.core.MakeErrorParser" point="org.eclipse.cdt.core.ErrorParser"/>
 					<extension id="org.eclipse.cdt.core.GCCErrorParser" point="org.eclipse.cdt.core.ErrorParser"/>
 					<extension id="org.eclipse.cdt.core.GASErrorParser" point="org.eclipse.cdt.core.ErrorParser"/>
 					<extension id="org.eclipse.cdt.core.GLDErrorParser" point="org.eclipse.cdt.core.ErrorParser"/>
+					<extension id="org.eclipse.cdt.core.GNU_ELF" point="org.eclipse.cdt.core.BinaryParser"/>
 				</extensions>
 			</storageModule>
 			<storageModule moduleId="cdtBuildSystem" version="4.0.0">
@@ -21,11 +21,12 @@
 							<option id="org.eclipse.cdt.cross.arm.gnu.summon.linux.option.debugging.level.1762442693" name="Debug level" superClass="org.eclipse.cdt.cross.arm.gnu.summon.linux.option.debugging.level" value="org.eclipse.cdt.cross.arm.gnu.base.option.debugging.level.max" valueType="enumerated"/>
 							<option id="org.eclipse.cdt.cross.arm.gnu.summon.linux.option.target.processor.677098875" name="Processor" superClass="org.eclipse.cdt.cross.arm.gnu.summon.linux.option.target.processor" value="org.eclipse.cdt.cross.arm.gnu.base.option.mcpu.cortex-m3" valueType="enumerated"/>
 							<targetPlatform id="org.eclipse.cdt.cross.arm.gnu.summon.linux.elf.platform.debug.1752885683" isAbstract="false" name="Linux Platform" superClass="org.eclipse.cdt.cross.arm.gnu.summon.linux.elf.platform.debug"/>
-							<builder buildPath="${workspace_loc:/arm-freeimu}/Debug" id="org.eclipse.cdt.cross.arm.gnu.summon.linux.elf.builder.debug.521767405" keepEnvironmentInBuildfile="false" managedBuildOn="true" name="ARM Summon Linux GNU Make builder" superClass="org.eclipse.cdt.cross.arm.gnu.summon.linux.elf.builder.debug"/>
+							<builder buildPath="${workspace_loc:/arm-freeimu}/Debug" id="org.eclipse.cdt.cross.arm.gnu.summon.linux.elf.builder.debug.521767405" keepEnvironmentInBuildfile="false" managedBuildOn="true" name="ARM Linux GNU Make builder (Summon)" superClass="org.eclipse.cdt.cross.arm.gnu.summon.linux.elf.builder.debug"/>
 							<tool id="org.eclipse.cdt.cross.arm.gnu.summon.linux.elf.assembler.debug.1749126511" name="ARM Summon Linux GCC Assembler" superClass="org.eclipse.cdt.cross.arm.gnu.summon.linux.elf.assembler.debug">
 								<option id="org.eclipse.cdt.cross.arm.gnu.assembler.option.preprocessor.def.1452366505" name="Defined symbols (-D)" superClass="org.eclipse.cdt.cross.arm.gnu.assembler.option.preprocessor.def" valueType="definedSymbols">
 									<listOptionValue builtIn="false" value="TARGET_IS_DUSTDEVIL_RA0"/>
 									<listOptionValue builtIn="false" value="STELLARIS"/>
+									<listOptionValue builtIn="false" value="UART_BUFFERED"/>
 								</option>
 								<inputType id="org.eclipse.cdt.cross.arm.gnu.summon.linux.assembler.base.input.1899958238" superClass="org.eclipse.cdt.cross.arm.gnu.summon.linux.assembler.base.input"/>
 							</tool>
@@ -33,12 +34,13 @@
 								<option id="org.eclipse.cdt.cross.arm.gnu.c.compiler.option.optimization.level.877008756" name="Optimization level" superClass="org.eclipse.cdt.cross.arm.gnu.c.compiler.option.optimization.level" value="org.eclipse.cdt.cross.arm.gnu.base.option.optimization.level.none" valueType="enumerated"/>
 								<option id="org.eclipse.cdt.cross.arm.gnu.c.compiler.option.preprocessor.def.502330583" name="Defined symbols (-D)" superClass="org.eclipse.cdt.cross.arm.gnu.c.compiler.option.preprocessor.def" valueType="definedSymbols">
 									<listOptionValue builtIn="false" value="TARGET_IS_DUSTDEVIL_RA0"/>
+									<listOptionValue builtIn="false" value="UART_BUFFERED"/>
 									<listOptionValue builtIn="false" value="STELLARIS"/>
 								</option>
 								<option id="org.eclipse.cdt.cross.arm.gnu.c.compiler.option.include.paths.1509141761" name="Include paths (-I)" superClass="org.eclipse.cdt.cross.arm.gnu.c.compiler.option.include.paths" valueType="includePath">
-									<listOptionValue builtIn="false" value="/home/joao/StellarisWare/driverlib"/>
-									<listOptionValue builtIn="false" value="/home/joao/StellarisWare"/>
 									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/${ProjName}/libraries}&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${STELLARISWARE}&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${STELLARISWARE}/driverlib&quot;"/>
 								</option>
 								<option id="org.eclipse.cdt.cross.arm.gnu.c.compiler.option.optimization.functionsections.436669419" name="Function sections (-ffunction-sections)" superClass="org.eclipse.cdt.cross.arm.gnu.c.compiler.option.optimization.functionsections" value="true" valueType="boolean"/>
 								<option id="org.eclipse.cdt.cross.arm.gnu.c.compiler.option.optimization.datasections.910927891" name="Data sections (-fdata-sections)" superClass="org.eclipse.cdt.cross.arm.gnu.c.compiler.option.optimization.datasections" value="true" valueType="boolean"/>
@@ -51,9 +53,10 @@
 								<option id="org.eclipse.cdt.cross.arm.gnu.cpp.compiler.option.optimization.level.1285690642" name="Optimization level" superClass="org.eclipse.cdt.cross.arm.gnu.cpp.compiler.option.optimization.level" value="org.eclipse.cdt.cross.arm.gnu.base.option.optimization.level.none" valueType="enumerated"/>
 								<option id="org.eclipse.cdt.cross.arm.gnu.cpp.compiler.option.preprocessor.def.2141321260" name="Defined symbols (-D)" superClass="org.eclipse.cdt.cross.arm.gnu.cpp.compiler.option.preprocessor.def" valueType="definedSymbols">
 									<listOptionValue builtIn="false" value="TARGET_IS_DUSTDEVIL_RA0"/>
-									<listOptionValue builtIn="false" value="USE__I2C"/>
+									<listOptionValue builtIn="false" value="UART_BUFFERED"/>
+									<listOptionValue builtIn="false" value="USE__I2C1"/>
 									<listOptionValue builtIn="false" value="USE__INA226"/>
-									<listOptionValue builtIn="false" value="USE_NRF24"/>
+									<listOptionValue builtIn="false" value="USE_NRF24_"/>
 									<listOptionValue builtIn="false" value="STELLARIS"/>
 								</option>
 								<option id="org.eclipse.cdt.cross.arm.gnu.cpp.compiler.option.include.paths.92195686" name="Include paths (-I)" superClass="org.eclipse.cdt.cross.arm.gnu.cpp.compiler.option.include.paths" valueType="includePath">
@@ -102,13 +105,13 @@
 			<storageModule buildSystemId="org.eclipse.cdt.managedbuilder.core.configurationDataProvider" id="org.eclipse.cdt.cross.arm.gnu.summon.linux.elf.release.1234055859" moduleId="org.eclipse.cdt.core.settings" name="Release">
 				<externalSettings/>
 				<extensions>
-					<extension id="org.eclipse.cdt.core.GNU_ELF" point="org.eclipse.cdt.core.BinaryParser"/>
 					<extension id="org.eclipse.cdt.core.GmakeErrorParser" point="org.eclipse.cdt.core.ErrorParser"/>
 					<extension id="org.eclipse.cdt.core.CWDLocator" point="org.eclipse.cdt.core.ErrorParser"/>
 					<extension id="org.eclipse.cdt.core.MakeErrorParser" point="org.eclipse.cdt.core.ErrorParser"/>
 					<extension id="org.eclipse.cdt.core.GCCErrorParser" point="org.eclipse.cdt.core.ErrorParser"/>
 					<extension id="org.eclipse.cdt.core.GASErrorParser" point="org.eclipse.cdt.core.ErrorParser"/>
 					<extension id="org.eclipse.cdt.core.GLDErrorParser" point="org.eclipse.cdt.core.ErrorParser"/>
+					<extension id="org.eclipse.cdt.core.GNU_ELF" point="org.eclipse.cdt.core.BinaryParser"/>
 				</extensions>
 			</storageModule>
 			<storageModule moduleId="cdtBuildSystem" version="4.0.0">
@@ -118,11 +121,12 @@
 							<option id="org.eclipse.cdt.cross.arm.gnu.summon.linux.option.debugging.level.1889289443" name="Debug level" superClass="org.eclipse.cdt.cross.arm.gnu.summon.linux.option.debugging.level" value="org.eclipse.cdt.cross.arm.gnu.base.option.debugging.level.none" valueType="enumerated"/>
 							<option id="org.eclipse.cdt.cross.arm.gnu.summon.linux.option.target.processor.286131438" name="Processor" superClass="org.eclipse.cdt.cross.arm.gnu.summon.linux.option.target.processor" value="org.eclipse.cdt.cross.arm.gnu.base.option.mcpu.cortex-m3" valueType="enumerated"/>
 							<targetPlatform id="org.eclipse.cdt.cross.arm.gnu.summon.linux.elf.platform.release.661062882" isAbstract="false" name="Linux Platform" superClass="org.eclipse.cdt.cross.arm.gnu.summon.linux.elf.platform.release"/>
-							<builder buildPath="${workspace_loc:/arm-freeimu}/Release" id="org.eclipse.cdt.cross.arm.gnu.summon.linux.elf.builder.release.1555753153" keepEnvironmentInBuildfile="false" managedBuildOn="true" name="ARM Summon Linux GNU Make builder" parallelBuildOn="true" parallelizationNumber="5" superClass="org.eclipse.cdt.cross.arm.gnu.summon.linux.elf.builder.release"/>
+							<builder buildPath="${workspace_loc:/arm-freeimu}/Release" id="org.eclipse.cdt.cross.arm.gnu.summon.linux.elf.builder.release.1555753153" keepEnvironmentInBuildfile="false" managedBuildOn="true" name="ARM Linux GNU Make builder (Summon)" parallelBuildOn="true" parallelizationNumber="5" superClass="org.eclipse.cdt.cross.arm.gnu.summon.linux.elf.builder.release"/>
 							<tool id="org.eclipse.cdt.cross.arm.gnu.summon.linux.elf.assembler.release.437255909" name="ARM Summon Linux GCC Assembler" superClass="org.eclipse.cdt.cross.arm.gnu.summon.linux.elf.assembler.release">
 								<option id="org.eclipse.cdt.cross.arm.gnu.assembler.option.preprocessor.def.1964567471" name="Defined symbols (-D)" superClass="org.eclipse.cdt.cross.arm.gnu.assembler.option.preprocessor.def" valueType="definedSymbols">
 									<listOptionValue builtIn="false" value="TARGET_IS_DUSTDEVIL_RA0"/>
 									<listOptionValue builtIn="false" value="STELLARIS"/>
+									<listOptionValue builtIn="false" value="UART_BUFFERED"/>
 								</option>
 								<inputType id="org.eclipse.cdt.cross.arm.gnu.summon.linux.assembler.base.input.1950878265" superClass="org.eclipse.cdt.cross.arm.gnu.summon.linux.assembler.base.input"/>
 							</tool>
@@ -131,6 +135,7 @@
 								<option id="org.eclipse.cdt.cross.arm.gnu.c.compiler.option.preprocessor.def.152384192" name="Defined symbols (-D)" superClass="org.eclipse.cdt.cross.arm.gnu.c.compiler.option.preprocessor.def" valueType="definedSymbols">
 									<listOptionValue builtIn="false" value="TARGET_IS_DUSTDEVIL_RA0"/>
 									<listOptionValue builtIn="false" value="STELLARIS"/>
+									<listOptionValue builtIn="false" value="UART_BUFFERED"/>
 								</option>
 								<option id="org.eclipse.cdt.cross.arm.gnu.c.compiler.option.include.paths.1194157989" name="Include paths (-I)" superClass="org.eclipse.cdt.cross.arm.gnu.c.compiler.option.include.paths" valueType="includePath">
 									<listOptionValue builtIn="false" value="/mnt/D/cenas_ARM/stellaris/driverlib"/>
@@ -147,6 +152,7 @@
 								<option id="org.eclipse.cdt.cross.arm.gnu.cpp.compiler.option.preprocessor.def.809395029" name="Defined symbols (-D)" superClass="org.eclipse.cdt.cross.arm.gnu.cpp.compiler.option.preprocessor.def" valueType="definedSymbols">
 									<listOptionValue builtIn="false" value="TARGET_IS_DUSTDEVIL_RA0"/>
 									<listOptionValue builtIn="false" value="STELLARIS"/>
+									<listOptionValue builtIn="false" value="UART_BUFFERED"/>
 								</option>
 								<option id="org.eclipse.cdt.cross.arm.gnu.cpp.compiler.option.include.paths.275540537" name="Include paths (-I)" superClass="org.eclipse.cdt.cross.arm.gnu.cpp.compiler.option.include.paths" valueType="includePath">
 									<listOptionValue builtIn="false" value="/mnt/D/cenas_ARM/stellaris/driverlib"/>

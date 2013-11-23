@@ -131,6 +131,8 @@ int INA226::get_bus_current(void)
 	unsigned int read_data = read_register(REG_CURRENT);
 
 	read_data = TwoComplement2ModSig_16bit(read_data);
+
+	return read_data;
 }
 
 int INA226::get_shunt_voltage(bool return_raw_data)
@@ -145,10 +147,7 @@ int INA226::get_shunt_voltage(bool return_raw_data)
 		read_data /= 10;
 		return read_data;
 	}
-	else
-	{
-		return read_data;
-	}
+	return read_data;
 }
 
 void INA226::set_vbus_conv_timer(uint16_t ct)
