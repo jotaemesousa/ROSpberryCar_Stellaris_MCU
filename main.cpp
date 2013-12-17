@@ -47,6 +47,7 @@ extern "C" {
 void configurePWM(void);
 void configureGPIO(void);
 void SysTickHandler();
+uint32_t millis();
 
 static unsigned long milliSec = 0;
 
@@ -90,7 +91,7 @@ unsigned long last_dongle_millis = 0, last_car_param_millis = 0;
 bool convert_values(RC_remote &in, RC_Param &car_param, struct rc_cmds &out);
 void updateLights(RC_remote &in);
 void drive_pwm(int pwm, bool brake);
-uint32_t millis();
+
 
 
 int main(void)
