@@ -242,9 +242,10 @@ int main(void)
 							UARTprintf("L = %d, A = %d\n",(int)ferrari288gto.Drive, (int)ferrari288gto.Steer);
 		#endif
 							servo_setPosition(ferrari288gto.Steer);
+							ferrari288gto.last_millis = millis();
 //							drive_pwm(ferrari288gto.Drive, 0);
 
-							velocity_pid.setNewReference(ferrari288gto.Drive/10,0);
+							velocity_pid.setNewReference((float)ferrari288gto.Drive/4.0,0);
 
 							if((ferrari.buttons & ASK_BIT) == ASK_BIT)
 							{
@@ -306,7 +307,7 @@ int main(void)
 			encoder_read_reset(&le, &re);
 			out = velocity_pid.run(le);
 			drive_pwm(out,1);
-			UARTprintf(":Enc %d %d o %d;\n", le, re, out);
+			//UARTprintf(":Enc %d %d o %d;\n", le, re, out);
 		}
 	}
 }
@@ -588,15 +589,15 @@ void SysTickHandler()
 {
 	milliSec++;
 
-	if(millis() - ferrari288gto.last_millis > THRESHOLD_BETWEEN_MSG)
-	{
-		ferrari288gto.Drive = 0;
-		ferrari288gto.Steer = SERVO_CENTER_ANGLE;
-
-		//drive_pwm(0,0);
-
-		servo_setPosition(ferrari288gto.Steer);
-	}
+//	if(millis() - ferrari288gto.last_millis > THRESHOLD_BETWEEN_MSG)
+//	{
+//		ferrari288gto.Drive = 0;
+//		ferrari288gto.Steer = SERVO_CENTER_ANGLE;
+//
+//		//drive_pwm(0,0);
+//
+//		servo_setPosition(ferrari288gto.Steer);
+//	}
 }
 
 uint32_t millis()
