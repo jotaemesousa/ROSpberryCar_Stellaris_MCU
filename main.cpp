@@ -241,10 +241,10 @@ int main(void)
 		#ifdef DEBUG_CMD
 							UARTprintf("L = %d, A = %d\n",(int)ferrari288gto.Drive, (int)ferrari288gto.Steer);
 		#endif
-							//servo_setPosition(ferrari288gto.Steer);
+							servo_setPosition(ferrari288gto.Steer);
 //							drive_pwm(ferrari288gto.Drive, 0);
 
-							//velocity_pid.setNewReference(ferrari288gto.Drive/10,0);
+							velocity_pid.setNewReference(ferrari288gto.Drive/10,0);
 
 							if((ferrari.buttons & ASK_BIT) == ASK_BIT)
 							{
