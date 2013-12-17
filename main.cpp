@@ -17,12 +17,13 @@ extern "C" {
 #include "utils/uartstdio.h"
 #include "utils/ustdlib.h"
 #include <stdint.h>
+#include <driverlib/ssi.h>
 
-#include "rc_cmds.h"
+#include "Utilities/rc_cmds.h"
 #include "timer.h"
-#include "servo.h"
-#include "INA226.h"
-#include "Encoder.h"
+#include "Utilities/servo.h"
+#include "Utilities/INA226.h"
+#include "Utilities/Encoder.h"
 
 
 // use sensors
@@ -49,16 +50,13 @@ void configureGPIO(void);
 void startConversion0(unsigned long int * values);
 void updateADCValues(unsigned long int * values);
 void SysTickHandler();
-uint32_t millis();
+
 
 static unsigned long milliSec = 0;
 
 
 
-uint32_t millis()
-{
-	return milliSec;
-}
+
 
 void InitConsole(void)
 {
@@ -81,6 +79,7 @@ void InitConsole(void)
 }
 
 
+
 }
 // testes
 int min1 = 1023, max1 = 0, min2 = 1023, max2 = 0;
@@ -89,14 +88,17 @@ int min1 = 1023, max1 = 0, min2 = 1023, max2 = 0;
 #include "comm.h"
 #include "rf24/RF24.h"
 #include "remote_defines.h"
+#include "Utilities/pid.h"
+
 static unsigned long ulClockMS=0;
+pid velocity_pid = pid();
 
 unsigned long last_dongle_millis = 0, last_car_param_millis = 0;
 
 bool convert_values(RC_remote &in, RC_Param &car_param, struct rc_cmds &out);
 void updateLights(RC_remote &in);
 void drive_pwm(int pwm, bool brake);
-
+uint32_t millis();
 
 
 int main(void)
@@ -130,6 +132,7 @@ int main(void)
 
 	RC_Param car_param;
 
+	unsigned long ulDataTx;
 
 #ifdef DEBUG
 	UARTprintf("Setting up Servo ... \n");
@@ -150,6 +153,22 @@ int main(void)
 
 #ifdef DEBUG
 	UARTprintf("SysCtlPeripheralEnable(SYSCTL_PERIPH_I2C0)\n");
+#endif
+
+#ifdef DEBUG
+	UARTprintf("Setting up PID\n");
+#endif
+	velocity_pid.setGains(1.5,0.2,0.0);
+	velocity_pid.setSampleTime(0.100);
+	velocity_pid.setMaxAccumulatedError(20);
+	velocity_pid.setFilter(0.20);
+	velocity_pid.setMaxOutput(30);
+	velocity_pid.setMinOutput(-30);
+	velocity_pid.initSensor(0);
+	velocity_pid.setNewReference(0,1);
+
+#ifdef DEBUG
+	UARTprintf("done\n");
 #endif
 
 #ifdef USE_I2C
@@ -205,6 +224,19 @@ int main(void)
 #endif
 
 #endif
+
+//	SysCtlPeripheralEnable(SYSCTL_PERIPH_SSI0);
+//	SysCtlPeripheralEnable(SYSCTL_PERIPH_GPIOA);
+//	GPIOPinTypeSSI(GPIO_PORTA_BASE, GPIO_PIN_2 | GPIO_PIN_3 | GPIO_PIN_4 | GPIO_PIN_5 );
+//	SysCtlPeripheralReset(SYSCTL_PERIPH_SSI0);
+//	SSIDisable(SSI0_BASE);
+//	SSIConfigSetExpClk(SSI0_BASE, SysCtlClockGet(), SSI_FRF_MOTO_MODE_0, SSI_MODE_MASTER, 5000, 8);
+//	SSIEnable(SSI0_BASE);
+//
+//	//Initialize the data to send.
+//	ulDataTx = 100;
+
+
 	while (1)
 	{
 #ifdef USE_NRF24
@@ -284,6 +316,28 @@ int main(void)
 #endif
 
 		serial_receive();
+
+		if(millis() - last_dongle_millis > 100)
+		{
+			last_dongle_millis = millis();
+
+			int32_t le = 0, re=0, out = 0;
+			encoder_get_velocity(&le, &re, millis());
+			out = velocity_pid.run(le);
+			drive_pwm(out,1);
+			UARTprintf(":Enc %d %d o %d;\n", le, re, out);
+		}
+
+
+
+//		if ( SSIDataPutNonBlocking(SSI0_BASE, ulDataTx) != 0 )
+//		{ UARTprintf("%d\r", ulDataTx);    }
+//
+//		//Wait until SSI0 is done transferring all the data in the transmit FIFO.
+//		while( SSIBusy(SSI0_BASE) )
+//		{ ; }
+//		SysCtlDelay (SysCtlClockGet());
+
 	}
 }
 
@@ -444,31 +498,33 @@ void drive_pwm(int pwm, bool brake)
 		//write pwm vales
 		if (pwm==0)
 		{
-			MAP_PWMOutputState(PWM_BASE, PWM_OUT_4_BIT | PWM_OUT_5_BIT, false);
+			MAP_PWMOutputState(PWM_BASE, PWM_OUT_4_BIT | PWM_OUT_5_BIT, true);
+			MAP_PWMPulseWidthSet(PWM_BASE, PWM_OUT_4, MAP_PWMGenPeriodGet(PWM_BASE, PWM_GEN_2));
+			MAP_PWMPulseWidthSet(PWM_BASE, PWM_OUT_5, MAP_PWMGenPeriodGet(PWM_BASE, PWM_GEN_2));
 		}
 		else if(pwm > 0 && pwm < 127)
 		{
-			MAP_PWMOutputState(PWM_BASE, PWM_OUT_5_BIT, false);
-			MAP_PWMOutputState(PWM_BASE, PWM_OUT_4_BIT, true);
-			MAP_PWMPulseWidthSet(PWM_BASE, PWM_OUT_4, MAP_PWMGenPeriodGet(PWM_BASE, PWM_GEN_2) * pwm / 127);
+			MAP_PWMOutputState(PWM_BASE, PWM_OUT_4_BIT | PWM_OUT_5_BIT, true);
+			MAP_PWMPulseWidthSet(PWM_BASE, PWM_OUT_5, MAP_PWMGenPeriodGet(PWM_BASE, PWM_GEN_2) * (127 - pwm) / 127);
+			MAP_PWMPulseWidthSet(PWM_BASE, PWM_OUT_4, MAP_PWMGenPeriodGet(PWM_BASE, PWM_GEN_2));
 
 		}
-		else if (pwm >=127)
+		else if (pwm >= 127)
 		{
-			MAP_PWMOutputState(PWM_BASE, PWM_OUT_5_BIT, false);
 			MAP_PWMOutputState(PWM_BASE, PWM_OUT_4_BIT, true);
+			MAP_PWMOutputState(PWM_BASE, PWM_OUT_5_BIT, false);
 			MAP_PWMPulseWidthSet(PWM_BASE, PWM_OUT_4, MAP_PWMGenPeriodGet(PWM_BASE, PWM_GEN_2));
 		}
 		else if ( pwm > -127)
 		{
-			MAP_PWMOutputState(PWM_BASE, PWM_OUT_4_BIT, false);
-			MAP_PWMOutputState(PWM_BASE, PWM_OUT_5_BIT, true);
-			MAP_PWMPulseWidthSet(PWM_BASE, PWM_OUT_5, MAP_PWMGenPeriodGet(PWM_BASE, PWM_GEN_2) * -pwm / 127);
+			MAP_PWMOutputState(PWM_BASE, PWM_OUT_4_BIT | PWM_OUT_5_BIT, true);
+			MAP_PWMPulseWidthSet(PWM_BASE, PWM_OUT_4, MAP_PWMGenPeriodGet(PWM_BASE, PWM_GEN_2) * (127 + pwm) / 127);
+			MAP_PWMPulseWidthSet(PWM_BASE, PWM_OUT_5, MAP_PWMGenPeriodGet(PWM_BASE, PWM_GEN_2));
 		}
 		else
 		{
-			MAP_PWMOutputState(PWM_BASE, PWM_OUT_4_BIT, false);
 			MAP_PWMOutputState(PWM_BASE, PWM_OUT_5_BIT, true);
+			MAP_PWMOutputState(PWM_BASE, PWM_OUT_4_BIT, false);
 			MAP_PWMPulseWidthSet(PWM_BASE, PWM_OUT_5, MAP_PWMGenPeriodGet(PWM_BASE, PWM_GEN_2));
 		}
 	}
@@ -654,6 +710,12 @@ void SysTickHandler()
 		servo_setPosition(ferrari288gto.Steer);
 	}
 }
+
+uint32_t millis()
+{
+	return milliSec;
+}
+
 //void drive_pwm(void)
 //{
 //	//write pwm vales

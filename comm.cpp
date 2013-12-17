@@ -6,7 +6,7 @@
  */
 #include "comm.h"
 
-extern void drive_pwm(int pwm, bool brake);
+
 
 void serial_receive(void)
 {
@@ -77,14 +77,24 @@ void serial_receive(void)
 
 uint8_t serial_parse(char *buffer)
 {
-        int d1 = 0, d2 = 0;
+        int d1 = 0, d2 = 0, d3 = 0;
 //        UARTprintf(" PARSE \n");
         if(!ustrncmp(buffer, ":V ",3))
         {
         	sscanf(buffer, ":V %d %d;", &d1, &d2);
         	UARTprintf(" echo d1 = %d, d2 = %d\n", d1, d2);
 
-        	drive_pwm(d1,0);
+        	velocity_pid.setNewReference((float)d1,d2);
+
+
+
         }
+        if(!ustrncmp(buffer, ":P ",3))
+        {
+        	sscanf(buffer, ":P %d %d;", &d1, &d2, &d3);
+        	UARTprintf(" echo p = %d, i = %d, d = %d\n", d1, d2, d3);
+        	velocity_pid.setGains((float)d1/10.0,(float)d2/10.0,(float)d3/10.0);
+        }
+
         return 1;
 }
