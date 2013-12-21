@@ -176,6 +176,7 @@ int pid::run(float sensor)
 	else
 	{
 		output = 0;
+		reset();
 	}
 
 	if(fabs(sensor) < 2 && fabs(reference_) < 1)

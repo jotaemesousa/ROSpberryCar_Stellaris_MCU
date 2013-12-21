@@ -86,7 +86,7 @@ int min1 = 1023, max1 = 0, min2 = 1023, max2 = 0;
 static unsigned long ulClockMS=0;
 pid velocity_pid = pid();
 
-unsigned long last_dongle_millis = 0, last_car_param_millis = 0;
+unsigned long last_dongle_millis = 0, last_car_param_millis = 0, last_dongle_millis_pid = 0;
 
 bool convert_values(RC_remote &in, RC_Param &car_param, struct rc_cmds &out);
 void updateLights(RC_remote &in);
@@ -149,12 +149,12 @@ int main(void)
 #ifdef DEBUG
 	UARTprintf("Setting up PID\n");
 #endif
-	velocity_pid.setGains(5.0,2.0,0.0);
-	velocity_pid.setSampleTime(0.100);
+	velocity_pid.setGains(5.0,2.5,0.0);
+	velocity_pid.setSampleTime(0.050);
 	velocity_pid.setMaxAccumulatedError(50);
 	velocity_pid.setFilter(0.20);
-	velocity_pid.setMaxOutput(30);
-	velocity_pid.setMinOutput(-30);
+	velocity_pid.setMaxOutput(50);
+	velocity_pid.setMinOutput(-50);
 	velocity_pid.initSensor(0);
 	velocity_pid.setNewReference(0,1);
 
@@ -219,89 +219,89 @@ int main(void)
 	while (1)
 	{
 #ifdef USE_NRF24
-		 //if there is data ready
-				if ( radio.available() )
+		//if there is data ready
+		if ( radio.available() )
+		{
+			bool done = false;
+			while (!done)
+			{
+
+				// Fetch the payload, and see if this was the last one.
+				done = radio.read( &ferrari, sizeof(RC_remote));
+
+				if(done)
 				{
-					bool done = false;
-					while (!done)
+
+					ferrari288gto.last_millis = millis();
+#ifdef DEBUG_CMD
+					UARTprintf("l = %d, a = %d\n",ferrari.linear,ferrari.steer);
+#endif
+					convert_values(ferrari, car_param, ferrari288gto);
+
+#ifdef DEBUG_CMD
+					UARTprintf("L = %d, A = %d\n",(int)ferrari288gto.Drive, (int)ferrari288gto.Steer);
+#endif
+					servo_setPosition(ferrari288gto.Steer);
+					ferrari288gto.last_millis = millis();
+					//							drive_pwm(ferrari288gto.Drive, 0);
+
+					velocity_pid.setNewReference((float)ferrari288gto.Drive/4.0,0);
+
+					if((ferrari.buttons & ASK_BIT) == ASK_BIT)
 					{
+						uint8_t temp;
+						temp = GPIOPinRead(GPIO_PORTE_BASE, GPIO_PIN_1);
 
-						// Fetch the payload, and see if this was the last one.
-						done = radio.read( &ferrari, sizeof(RC_remote));
+#ifdef DEBUG
+						UARTprintf("portE1 = %x\n", temp);
+#endif
+						temp = (temp & GPIO_PIN_1) == GPIO_PIN_1 ? 0 : 1;
 
-						if(done)
-						{
-
-							ferrari288gto.last_millis = millis();
-		#ifdef DEBUG_CMD
-							UARTprintf("l = %d, a = %d\n",ferrari.linear,ferrari.steer);
-		#endif
-							convert_values(ferrari, car_param, ferrari288gto);
-
-		#ifdef DEBUG_CMD
-							UARTprintf("L = %d, A = %d\n",(int)ferrari288gto.Drive, (int)ferrari288gto.Steer);
-		#endif
-							servo_setPosition(ferrari288gto.Steer);
-							ferrari288gto.last_millis = millis();
-//							drive_pwm(ferrari288gto.Drive, 0);
-
-							velocity_pid.setNewReference((float)ferrari288gto.Drive/4.0,0);
-
-							if((ferrari.buttons & ASK_BIT) == ASK_BIT)
-							{
-								uint8_t temp;
-								temp = GPIOPinRead(GPIO_PORTE_BASE, GPIO_PIN_1);
-
-		#ifdef DEBUG
-								UARTprintf("portE1 = %x\n", temp);
-		#endif
-								temp = (temp & GPIO_PIN_1) == GPIO_PIN_1 ? 0 : 1;
-
-		#ifdef DEBUG
-								UARTprintf("sent = %d\n", temp);
-		#endif
-								radio.stopListening();
-								radio.write(&temp, sizeof(uint8_t));
-								radio.startListening();
-							}
-
-
-							updateLights(ferrari);
-							//SysCtlDelay(50*ulClockMS);
-						}
+#ifdef DEBUG
+						UARTprintf("sent = %d\n", temp);
+#endif
+						radio.stopListening();
+						radio.write(&temp, sizeof(uint8_t));
+						radio.startListening();
 					}
+
+
+					updateLights(ferrari);
+					//SysCtlDelay(50*ulClockMS);
 				}
+			}
+		}
 
-				if(millis() - last_car_param_millis > CAR_PARAM_MILLIS)
-				{
-					last_car_param_millis = millis();
+//		if(millis() - last_car_param_millis > CAR_PARAM_MILLIS)
+//		{
+//			last_car_param_millis = millis();
+//
+//			int32_t l_vel, r_vel;
+//			encoder_get_velocity(&l_vel, &r_vel, millis());
+//			car_param.velocity = (l_vel + r_vel)/2;
+//			car_param.batery_level = power_meter.get_bus_voltage();
+//			car_param.x = 0;
+//			car_param.y = 0;
+//		}
 
-					int32_t l_vel, r_vel;
-					encoder_get_velocity(&l_vel, &r_vel, millis());
-					car_param.velocity = (l_vel + r_vel)/2;
-					car_param.batery_level = power_meter.get_bus_voltage();
-					car_param.x = 0;
-					car_param.y = 0;
-				}
+		if(millis() - last_dongle_millis > DONGLE_MILLIS)
+		{
+			last_dongle_millis = millis();
 
-				if(millis() - last_dongle_millis > DONGLE_MILLIS)
-				{
-					last_dongle_millis = millis();
+			radio.stopListening();
+			radio.openWritingPipe(pipes[2]);
 
-					radio.stopListening();
-					radio.openWritingPipe(pipes[2]);
-
-					radio.write(&car_param, sizeof(RC_Param));
-					radio.openWritingPipe(pipes[1]);
-					radio.startListening();
-				}
+			radio.write(&car_param, sizeof(RC_Param));
+			radio.openWritingPipe(pipes[1]);
+			radio.startListening();
+		}
 #endif
 
 		serial_receive();
 
-		if(millis() - last_dongle_millis > 100)
+		if(millis() - last_dongle_millis_pid > 50)
 		{
-			last_dongle_millis = millis();
+			last_dongle_millis_pid = millis();
 
 			int32_t le = 0, re=0, out = 0;
 			encoder_read_reset(&le, &re);
@@ -589,15 +589,15 @@ void SysTickHandler()
 {
 	milliSec++;
 
-//	if(millis() - ferrari288gto.last_millis > THRESHOLD_BETWEEN_MSG)
-//	{
-//		ferrari288gto.Drive = 0;
-//		ferrari288gto.Steer = SERVO_CENTER_ANGLE;
-//
-//		//drive_pwm(0,0);
-//
-//		servo_setPosition(ferrari288gto.Steer);
-//	}
+	//	if(millis() - ferrari288gto.last_millis > THRESHOLD_BETWEEN_MSG)
+	//	{
+	//		ferrari288gto.Drive = 0;
+	//		ferrari288gto.Steer = SERVO_CENTER_ANGLE;
+	//
+	//		//drive_pwm(0,0);
+	//
+	//		servo_setPosition(ferrari288gto.Steer);
+	//	}
 }
 
 uint32_t millis()
