@@ -60,14 +60,12 @@ int main(void)
 	// init SSI0 in slave mode
 	initSPIComm();
 
-	RC_remote ferrari;
-	ferrari.linear = 0;
-	ferrari.steer = 0;
-	ferrari.buttons = 0;
+//	RC_remote ferrari;
+//	ferrari.linear = 0;
+//	ferrari.steer = 0;
+//	ferrari.buttons = 0;
 
 	int16_t le_sum = 0, re_sum = 0 ;
-
-	RC_Param car_param;
 
 #ifdef DEBUG
 	UARTprintf("Setting up Servo ... \n");

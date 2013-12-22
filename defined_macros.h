@@ -21,7 +21,7 @@
 // use sensors
 #define USE_I2C
 #define USE_INA226
-#define USE_NRF24_
+//#define USE_NRF24
 
 #define SYSTICKS_PER_SECOND     1000
 

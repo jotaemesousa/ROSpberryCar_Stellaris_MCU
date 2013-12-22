@@ -131,7 +131,7 @@ uint8_t serial_parse(char *buffer)
 	}
 	if(!ustrncmp(buffer, ":P ",3))
 	{
-		sscanf(buffer, ":P %d %d;", &d1, &d2, &d3);
+		sscanf(buffer, ":P %d %d %d;", &d1, &d2, &d3);
 		UARTprintf(" echo p = %d, i = %d, d = %d\n", d1, d2, d3);
 		velocity_pid.setGains((float)d1/10.0,(float)d2/10.0,(float)d3/10.0);
 	}
@@ -150,9 +150,7 @@ void SSIIntHandler(void)
 	static int8_t bytes_left_to_send = 0;
 	static int8_t n_bytes_received = 0;
 	static SSI_Interrupt_State state_interrupt = RECEIVING_STATE;
-
-	uint8_t buff[12];
-	static unsigned long received_byte = 0, buffer_index =0;
+	static unsigned long received_byte = 0, buffer_index = 0;
 
 	//MAP_GPIOPinWrite(GPIO_PORTB_BASE,GPIO_PIN_7,GPIO_PIN_7);
 
