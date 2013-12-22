@@ -22,7 +22,7 @@ int min1 = 1023, max1 = 0, min2 = 1023, max2 = 0;
 
 static unsigned long ulClockMS=0;
 pid velocity_pid = pid();
-INA226 power_meter = INA226(0x45);
+INA226 power_meter;
 
 unsigned long last_dongle_millis = 0, last_uart_millis= 0, last_dongle_millis_pid = 0;
 
@@ -118,6 +118,7 @@ int main(void)
 
 #ifdef USE_I2C
 #ifdef USE_INA226
+	power_meter = INA226(0x45);
 	power_meter.set_sample_average(4);
 	power_meter.set_calibration_value(445);
 	power_meter.set_bus_voltage_limit(7.0);
