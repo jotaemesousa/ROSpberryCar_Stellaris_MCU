@@ -97,7 +97,7 @@ void PORTDIntHandler ()
 	unsigned int currentstate = GPIOPinRead(GPIO_PORTD_BASE,GPIO_PIN_3) >> 3;
 //	UARTprintf("Port D \nold counter : %d\n",right_counter);
 	right_counter += delta_left;
-	delta_left = 0;
+	//delta_left = 0;
 
 	//	UARTprintf("Port D \nnew counter : %d\n",right_counter);
 //	UARTprintf("currentstate : %x\n",currentstate);

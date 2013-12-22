@@ -123,6 +123,8 @@ int main(void)
 	ferrari.steer = 0;
 	ferrari.buttons = 0;
 
+	int16_t le_sum = 0, re_sum = 0 ;
+
 	RC_Param car_param;
 
 #ifdef DEBUG
@@ -294,6 +296,10 @@ int main(void)
 			radio.write(&car_param, sizeof(RC_Param));
 			radio.openWritingPipe(pipes[1]);
 			radio.startListening();
+
+			UARTprintf(":Enc %03d %03d;\n", le_sum, re_sum);
+			le_sum = 0;
+			re_sum = 0;
 		}
 #endif
 
@@ -307,7 +313,8 @@ int main(void)
 			encoder_read_reset(&le, &re);
 			out = velocity_pid.run(le);
 			drive_pwm(out,1);
-			//UARTprintf(":Enc %d %d o %d;\n", le, re, out);
+			le_sum += le;
+			re_sum += re;
 		}
 	}
 }
