@@ -1,24 +1,8 @@
 #include "common_includes.h"
+#include "defined_macros.h"
+
 extern "C"
 {
-
-// use sensors
-#define USE_I2C
-#define USE_INA226
-#define USE_NRF24_
-
-#define SYSTICKS_PER_SECOND     1000
-
-// HEARTBEAT
-#define TICKS_PER_SECOND 		1000
-
-// servo and drive
-#define MAX_PWM_STEER			100
-#define MAX_PWM_DRIVE			10000
-
-// debug
-#define DEBUG
-#define DEBUG_CMD
 
 void configurePWM(void);
 void configureGPIO(void);
@@ -26,28 +10,6 @@ void SysTickHandler();
 uint32_t millis();
 
 static unsigned long milliSec = 0;
-
-void InitConsole(void)
-{
-	//
-	// Enable GPIO port A which is used for UART0 pins.
-	// TODO: change this to whichever GPIO port you are using.
-	//
-	MAP_SysCtlPeripheralEnable(SYSCTL_PERIPH_GPIOA);
-
-	//
-	// Select the alternate (UART) function for these pins.
-	// TODO: change this to select the port/pin you are using.
-	//
-	MAP_GPIOPinTypeUART(GPIO_PORTA_BASE, GPIO_PIN_0 | GPIO_PIN_1);
-
-	//
-	// Initialize the UART for console I/O.
-	//
-	UARTStdioInitExpClk(0,230400);
-}
-
-
 
 }
 // testes
@@ -92,8 +54,12 @@ int main(void)
 	//
 	ulClockMS = MAP_SysCtlClockGet() / (3 * 1000);
 
-	InitConsole();
-	UARTEchoSet(false);
+	// init Serial Comm
+	initSerialComm(230400);
+
+	// init SSI0 in slave mode
+	initSPIComm();
+
 	RC_remote ferrari;
 	ferrari.linear = 0;
 	ferrari.steer = 0;
@@ -129,7 +95,7 @@ int main(void)
 #endif
 	velocity_pid.setGains(5.0,2.5,0.0);
 	velocity_pid.setSampleTime(0.050);
-	velocity_pid.setMaxAccumulatedError(50);
+	velocity_pid.setMaxAccumulatedError(40);
 	velocity_pid.setFilter(0.20);
 	velocity_pid.setMaxOutput(50);
 	velocity_pid.setMinOutput(-50);
