@@ -1,35 +1,11 @@
-extern "C" {
-#include <math.h>
-#include <inc/hw_memmap.h>
-#include <inc/hw_types.h>
-#include <inc/hw_i2c.h>
-#include <inc/hw_ints.h>
-#include <driverlib/adc.h>
-#include <driverlib/interrupt.h>
-#include <driverlib/i2c.h>
-#include <driverlib/pwm.h>
-#include <driverlib/rom.h>
-#include <driverlib/rom_map.h>
-#include <driverlib/sysctl.h>
-#include <driverlib/systick.h>
-#include <driverlib/gpio.h>
-#include <driverlib/uart.h>
-#include "utils/uartstdio.h"
-#include "utils/ustdlib.h"
-#include <stdint.h>
-#include <driverlib/ssi.h>
-
-#include "Utilities/rc_cmds.h"
-#include "timer.h"
-#include "Utilities/servo.h"
-#include "Utilities/INA226.h"
-#include "Utilities/Encoder.h"
-
+#include "common_includes.h"
+extern "C"
+{
 
 // use sensors
 #define USE_I2C
 #define USE_INA226
-#define USE_NRF24
+#define USE_NRF24_
 
 #define SYSTICKS_PER_SECOND     1000
 
@@ -186,122 +162,11 @@ int main(void)
 #endif
 #endif
 
-#ifdef USE_NRF24
-	RF24 radio = RF24();
 
-	// Radio pipe addresses for the 2 nodes to communicate.
-	const uint64_t pipes[3] = { 0xF0F0F0F0E1LL, 0xF0F0F0F0D2LL, 0xF0F0F0F0C3LL};
-
-	// Setup and configure rf radio
-	radio.begin();
-
-	// optionally, increase the delay between retries & # of retries
-	radio.setRetries(15,15);
-
-	// optionally, reduce the payload size.  seems to
-	// improve reliability
-	radio.setPayloadSize(sizeof(RC_remote));
-
-	radio.setDataRate(RF24_250KBPS);
-
-	// Open pipes to other nodes for communication
-	radio.openWritingPipe(pipes[1]);
-	radio.openReadingPipe(1,pipes[0]);
-
-	// Start listening
-	radio.startListening();
-
-#ifdef DEBUG
-	// Dump the configuration of the rf unit for debugging
-	radio.printDetails();
-#endif
-
-#endif
 
 	while (1)
 	{
-#ifdef USE_NRF24
-		//if there is data ready
-		if ( radio.available() )
-		{
-			bool done = false;
-			while (!done)
-			{
 
-				// Fetch the payload, and see if this was the last one.
-				done = radio.read( &ferrari, sizeof(RC_remote));
-
-				if(done)
-				{
-
-					ferrari288gto.last_millis = millis();
-#ifdef DEBUG_CMD
-					UARTprintf("l = %d, a = %d\n",ferrari.linear,ferrari.steer);
-#endif
-					convert_values(ferrari, car_param, ferrari288gto);
-
-#ifdef DEBUG_CMD
-					UARTprintf("L = %d, A = %d\n",(int)ferrari288gto.Drive, (int)ferrari288gto.Steer);
-#endif
-					servo_setPosition(ferrari288gto.Steer);
-					ferrari288gto.last_millis = millis();
-					//							drive_pwm(ferrari288gto.Drive, 0);
-
-					velocity_pid.setNewReference((float)ferrari288gto.Drive/4.0,0);
-
-					if((ferrari.buttons & ASK_BIT) == ASK_BIT)
-					{
-						uint8_t temp;
-						temp = GPIOPinRead(GPIO_PORTE_BASE, GPIO_PIN_1);
-
-#ifdef DEBUG
-						UARTprintf("portE1 = %x\n", temp);
-#endif
-						temp = (temp & GPIO_PIN_1) == GPIO_PIN_1 ? 0 : 1;
-
-#ifdef DEBUG
-						UARTprintf("sent = %d\n", temp);
-#endif
-						radio.stopListening();
-						radio.write(&temp, sizeof(uint8_t));
-						radio.startListening();
-					}
-
-
-					updateLights(ferrari);
-					//SysCtlDelay(50*ulClockMS);
-				}
-			}
-		}
-
-//		if(millis() - last_car_param_millis > CAR_PARAM_MILLIS)
-//		{
-//			last_car_param_millis = millis();
-//
-//			int32_t l_vel, r_vel;
-//			encoder_get_velocity(&l_vel, &r_vel, millis());
-//			car_param.velocity = (l_vel + r_vel)/2;
-//			car_param.batery_level = power_meter.get_bus_voltage();
-//			car_param.x = 0;
-//			car_param.y = 0;
-//		}
-
-		if(millis() - last_dongle_millis > DONGLE_MILLIS)
-		{
-			last_dongle_millis = millis();
-
-			radio.stopListening();
-			radio.openWritingPipe(pipes[2]);
-
-			radio.write(&car_param, sizeof(RC_Param));
-			radio.openWritingPipe(pipes[1]);
-			radio.startListening();
-
-			UARTprintf(":Enc %03d %03d;\n", le_sum, re_sum);
-			le_sum = 0;
-			re_sum = 0;
-		}
-#endif
 
 		serial_receive();
 
@@ -311,7 +176,7 @@ int main(void)
 
 			int32_t le = 0, re=0, out = 0;
 			encoder_read_reset(&le, &re);
-			out = velocity_pid.run(le);
+			out = velocity_pid.run((le + re)/2);
 			drive_pwm(out,1);
 			le_sum += le;
 			re_sum += re;
