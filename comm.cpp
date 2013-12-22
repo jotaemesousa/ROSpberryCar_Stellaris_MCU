@@ -6,6 +6,7 @@
  */
 #include "comm.h"
 
+extern INA226 power_meter;
 ROSCASDataFromRASPI struct_to_receive;
 ROSCASDataToRASPI struct_to_send;
 
@@ -36,7 +37,7 @@ void initSPIComm(void)
 	SysCtlPeripheralEnable(SYSCTL_PERIPH_SSI0);
 	SysCtlPeripheralEnable(SYSCTL_PERIPH_GPIOA);
 
-	GPIOPinTypeSSI(GPIO_PORTE_BASE,GPIO_PIN_0|GPIO_PIN_1|GPIO_PIN_2|GPIO_PIN_3); //SPI1 output
+	GPIOPinTypeSSI(GPIO_PORTA_BASE,GPIO_PIN_4|GPIO_PIN_5|GPIO_PIN_2|GPIO_PIN_3); //SPI0 output
 	SSIDisable(SSI0_BASE);
 	SSIConfigSetExpClk(SSI0_BASE,SysCtlClockGet(), SSI_FRF_MOTO_MODE_0,SSI_MODE_SLAVE, 5000,8);
 	SSIEnable(SSI0_BASE);
@@ -169,41 +170,37 @@ void SSIIntHandler(void)
 			*(pointer_received + n_bytes_received) = received_byte;
 			buffer_index++;
 			n_bytes_received++;
-			//UARTprintf("rec %x\n", received_byte);
-
-
 		}
 
 		if(n_bytes_received >= 3)
 		{
-
+			// update vars
 
 
 			if(struct_to_receive.cmd & ASK_DATA_BIT)
 			{
 				if(struct_to_receive.cmd & ASK_FIRMWARE_BIT)
 				{
-					struct_to_send.left_encoder_count = 10;
-					struct_to_send.right_encoder_count = -struct_to_receive.v_linear;
-					struct_to_send.battery_voltage  = 20;
-					struct_to_send.battery_current = 30;
+					struct_to_send.left_encoder_count = STELLARIS_VERSION;
+					struct_to_send.right_encoder_count = -STELLARIS_VERSION;
+					struct_to_send.battery_voltage  = power_meter.get_bus_voltage();
+					struct_to_send.battery_current = power_meter.get_bus_current();
 					struct_to_send.cmd_back = struct_to_receive.cmd;
 				}
 				else
 				{
-					struct_to_send.left_encoder_count = struct_to_receive.v_linear;
-					struct_to_send.right_encoder_count = -struct_to_receive.v_linear;
-					struct_to_send.battery_voltage  = 20;
-					struct_to_send.battery_current = 30;
+					int32_t left = 0, right = 0;
+					encoder_read_reset(&left,&right,1);
+					struct_to_send.left_encoder_count = left;
+					struct_to_send.right_encoder_count = right;
+					struct_to_send.battery_voltage  = power_meter.get_bus_voltage();
+					struct_to_send.battery_current = power_meter.get_bus_current();
 					struct_to_send.cmd_back = struct_to_receive.cmd;
-
-
 				}
 				state_interrupt = SENDING_AFTER_RECEIVING;
 				bytes_left_to_send = sizeof( ROSCASDataToRASPI);
 				SSIDataPutNonBlocking(SSI0_BASE, pointer_send[sizeof( ROSCASDataToRASPI) - bytes_left_to_send]);
 				bytes_left_to_send--;
-				//UARTprintf("send\n");
 			}
 			else
 			{

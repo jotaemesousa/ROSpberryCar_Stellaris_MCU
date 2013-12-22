@@ -30,12 +30,16 @@ extern "C" {
 #include <stdint.h>
 #include <driverlib/ssi.h>
 
+
 #include "Utilities/rc_cmds.h"
 #include "timer.h"
 #include "Utilities/servo.h"
+
+}
+
 #include "Utilities/INA226.h"
 #include "Utilities/Encoder.h"
 
-}
+
 
 #endif /* COMMON_INCLUDES_H_ */
