@@ -17,7 +17,6 @@ int min1 = 1023, max1 = 0, min2 = 1023, max2 = 0;
 
 
 #include "comm.h"
-#include "rf24/RF24.h"
 #include "remote_defines.h"
 #include "Utilities/pid.h"
 
@@ -132,8 +131,6 @@ int main(void)
 
 	while (1)
 	{
-
-
 		serial_receive();
 
 		if(millis() - last_dongle_millis_pid > 50)
