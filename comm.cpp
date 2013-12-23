@@ -181,8 +181,8 @@ void SSIIntHandler(void)
 				{
 					struct_to_send.left_encoder_count = STELLARIS_VERSION;
 					struct_to_send.right_encoder_count = -STELLARIS_VERSION;
-					struct_to_send.battery_voltage  = power_meter.get_bus_voltage();
-					struct_to_send.battery_current = power_meter.get_bus_current();
+					struct_to_send.battery_voltage  = power_meter.get_bus_voltage()/100;
+					struct_to_send.battery_current = power_meter.get_bus_current()/10;
 					struct_to_send.cmd_back = struct_to_receive.cmd;
 				}
 				else
@@ -191,8 +191,8 @@ void SSIIntHandler(void)
 					encoder_read_reset(&left,&right,1);
 					struct_to_send.left_encoder_count = left;
 					struct_to_send.right_encoder_count = right;
-					struct_to_send.battery_voltage  = power_meter.get_bus_voltage();
-					struct_to_send.battery_current = power_meter.get_bus_current();
+					struct_to_send.battery_voltage  = power_meter.get_bus_voltage()/100;
+					struct_to_send.battery_current = power_meter.get_bus_current()/10;
 					struct_to_send.cmd_back = struct_to_receive.cmd;
 				}
 				state_interrupt = SENDING_AFTER_RECEIVING;
