@@ -154,6 +154,8 @@ void SysTickHandler()
 {
 	milliSec++;
 
+	communication_update_function();
+
 	//	if(millis() - ferrari288gto.last_millis > THRESHOLD_BETWEEN_MSG)
 	//	{
 	//		ferrari288gto.Drive = 0;

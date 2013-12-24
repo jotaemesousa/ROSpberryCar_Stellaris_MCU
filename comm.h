@@ -44,6 +44,7 @@ extern pid velocity_pid;
 
 void initSerialComm(unsigned long ulBaud);
 void initSPIComm(void);
+void communication_update_function(void);
 
 #if UART_SERIAL_PARSE_SSCANF
 void serial_receive(void);
@@ -54,6 +55,7 @@ uint8_t serial_parse(char *buffer);
 extern "C"
 {
 #endif
+extern uint32_t millis();
 void SSIIntHandler(void);
 #ifdef __cplusplus
 }

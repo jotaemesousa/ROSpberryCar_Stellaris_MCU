@@ -7,8 +7,10 @@
 #include "comm.h"
 
 extern INA226 power_meter;
+
 ROSCASDataFromRASPI struct_to_receive;
 ROSCASDataToRASPI struct_to_send;
+static uint32_t last_comm_millis = 0;
 
 void initSerialComm(unsigned long ulBaud)
 {
@@ -172,7 +174,7 @@ void SSIIntHandler(void)
 			n_bytes_received++;
 		}
 
-		if(n_bytes_received >= 3)
+		if(n_bytes_received >= sizeof(ROSCASDataFromRASPI))
 		{
 			// update vars
 
@@ -234,12 +236,16 @@ void SSIIntHandler(void)
 
 		break;
 	}
-
-
-
-	//MAP_GPIOPinWrite(GPIO_PORTB_BASE,GPIO_PIN_7,0);
-
 }
 #ifdef __cplusplus
 }
 #endif
+
+void communication_update_function(void)
+{
+	if(millis() - last_comm_millis > DELAY_BETWEEN_MSG)
+	{
+		drive_pwm(0,0);
+		servo_setPosition(SERVO_CENTER_ANGLE);
+	}
+}

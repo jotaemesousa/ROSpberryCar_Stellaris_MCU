@@ -30,6 +30,7 @@
 
 // HEARTBEAT
 #define TICKS_PER_SECOND 		1000
+#define DELAY_BETWEEN_MSG		250
 
 // servo and drive
 #define MAX_PWM_STEER			100
