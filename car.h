@@ -12,4 +12,6 @@
 #include "remote_defines.h"
 #include "Utilities/servo.h"
 
+bool convert_values(RC_remote &in, RC_Param &car_param, RC_Cmds &out);
+
 #endif /* CAR_H_ */
