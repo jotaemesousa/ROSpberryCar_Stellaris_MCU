@@ -9,7 +9,7 @@
 #define DEFINED_MACROS_H_
 
 //Firmware
-#define STELLARIS_VERSION	10
+#define STELLARIS_VERSION	11
 
 // SSI
 #define BLINKY_BIT          0x80
