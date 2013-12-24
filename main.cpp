@@ -26,7 +26,7 @@ INA226 power_meter;
 
 unsigned long last_dongle_millis = 0, last_uart_millis= 0, last_dongle_millis_pid = 0;
 
-bool convert_values(RC_remote &in, RC_Param &car_param, struct rc_cmds &out);
+bool convert_values(RC_remote &in, RC_Param &car_param, RC_Cmds &out);
 void updateLights(RC_remote &in);
 void drive_pwm(int pwm, bool brake);
 
@@ -59,11 +59,6 @@ int main(void)
 
 	// init SSI0 in slave mode
 	initSPIComm();
-
-//	RC_remote ferrari;
-//	ferrari.linear = 0;
-//	ferrari.steer = 0;
-//	ferrari.buttons = 0;
 
 	int16_t le_sum = 0, re_sum = 0 ;
 
@@ -344,7 +339,7 @@ void updateLights(RC_remote &in)
 
 }
 
-bool convert_values(RC_remote &in, RC_Param &car_param, struct rc_cmds &out)
+bool convert_values(RC_remote &in, RC_Param &car_param, RC_Cmds &out)
 {
 	float steer_factor = 1;
 	static bool steer_mode = 0;

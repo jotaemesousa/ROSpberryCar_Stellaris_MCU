@@ -54,4 +54,11 @@ typedef struct ROSpberryCar
 
 }RC_Param;
 
+typedef struct rc_cmds
+{
+	int Drive;
+	int Steer;
+	unsigned long int last_millis;
+}RC_Cmds;
+
 #endif /* REMOTE_DEFINES_H_ */
