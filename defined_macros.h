@@ -18,6 +18,9 @@
 #define ASK_FIRMWARE_BIT    0x10
 #define STARTSTOP_BIT       0x08
 
+// UART serial parse using sscanf()
+#define UART_SERIAL_PARSE_SSCANF	FALSE
+
 // use sensors
 //#define USE_I2C
 //#define USE_INA226

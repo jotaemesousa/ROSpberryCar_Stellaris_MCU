@@ -6,16 +6,17 @@
  */
 
 #include "servo.h"
-#include <inc/lm3s2776.h>
-#include <inc/hw_types.h>
-#include <inc/hw_memmap.h>
-#include <driverlib/debug.h>
-#include <driverlib/sysctl.h>
-#include <driverlib/systick.h>
-#include <driverlib/gpio.h>
-#include <driverlib/pwm.h>
-#include "utils/uartstdio.h"
-#include "utils/ustdlib.h"
+//#include <inc/lm3s2776.h>
+//#include <inc/hw_types.h>
+//#include <inc/hw_memmap.h>
+//#include <driverlib/debug.h>
+//#include <driverlib/sysctl.h>
+//#include <driverlib/systick.h>
+//#include <driverlib/gpio.h>
+//#include <driverlib/pwm.h>
+//#include "utils/uartstdio.h"
+//#include "utils/ustdlib.h"
+#include "../common_includes.h"
 
 //62500 count values
 
@@ -49,3 +50,4 @@ void servo_setPosition(int position)
 	}
 
 }
+

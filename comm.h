@@ -11,6 +11,8 @@
 #include "common_includes.h"
 #include "Utilities/pid.h"
 #include "Utilities/Encoder.h"
+#include "Utilities/INA226.h"
+#include "Utilities/servo.h"
 #include <stdio.h>
 #include "defined_macros.h"
 
@@ -43,8 +45,10 @@ extern pid velocity_pid;
 void initSerialComm(unsigned long ulBaud);
 void initSPIComm(void);
 
+#if UART_SERIAL_PARSE_SSCANF
 void serial_receive(void);
 uint8_t serial_parse(char *buffer);
+#endif
 
 #ifdef __cplusplus
 extern "C"

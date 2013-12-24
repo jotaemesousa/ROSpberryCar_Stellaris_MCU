@@ -48,6 +48,7 @@ void initSPIComm(void)
 	IntEnable(INT_SSI0);
 }
 
+#if UART_SERIAL_PARSE_SSCANF
 void serial_receive(void)
 {
 	char inChar;                        // temporary input char
@@ -115,6 +116,7 @@ void serial_receive(void)
 
 }
 
+
 uint8_t serial_parse(char *buffer)
 {
 	int d1 = 0, d2 = 0, d3 = 0;
@@ -138,11 +140,13 @@ uint8_t serial_parse(char *buffer)
 
 	return 1;
 }
+#endif
 
 #ifdef __cplusplus
 extern "C"
 {
 #endif
+
 void SSIIntHandler(void)
 {
 	SSIIntClear(SSI0_BASE, SSI_RXTO);
@@ -151,8 +155,6 @@ void SSIIntHandler(void)
 	static int8_t n_bytes_received = 0;
 	static SSI_Interrupt_State state_interrupt = RECEIVING_STATE;
 	static unsigned long received_byte = 0, buffer_index = 0;
-
-	//MAP_GPIOPinWrite(GPIO_PORTB_BASE,GPIO_PIN_7,GPIO_PIN_7);
 
 	uint8_t *pointer_received = (uint8_t *)&struct_to_receive;
 	uint8_t *pointer_send = (uint8_t *)&struct_to_send;

@@ -8,7 +8,10 @@
 #ifndef COMMON_INCLUDES_H_
 #define COMMON_INCLUDES_H_
 
-extern "C" {
+#ifdef __cplusplus
+extern "C"
+{
+#endif
 
 #include <math.h>
 #include <inc/hw_memmap.h>
@@ -31,12 +34,13 @@ extern "C" {
 #include <driverlib/ssi.h>
 #include "timer.h"
 
-#include "Utilities/servo.h"
-
+//#include "Utilities/servo.h"
+#ifdef __cplusplus
 }
+#endif
 
-#include "Utilities/INA226.h"
-#include "Utilities/Encoder.h"
+//#include "Utilities/INA226.h"
+//#include "Utilities/Encoder.h"
 //#include "Utilities/pwm_lights.h"
 
 

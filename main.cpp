@@ -1,6 +1,10 @@
 #include "common_includes.h"
 #include "defined_macros.h"
 
+
+
+#include "Utilities/servo.h"
+
 extern "C"
 {
 
@@ -125,7 +129,6 @@ int main(void)
 
 	while (1)
 	{
-		serial_receive();
 
 		if(millis() - last_dongle_millis_pid > 50)
 		{
