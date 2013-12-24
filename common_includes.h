@@ -34,14 +34,8 @@ extern "C"
 #include <driverlib/ssi.h>
 #include "timer.h"
 
-//#include "Utilities/servo.h"
 #ifdef __cplusplus
 }
 #endif
-
-//#include "Utilities/INA226.h"
-//#include "Utilities/Encoder.h"
-//#include "Utilities/pwm_lights.h"
-
 
 #endif /* COMMON_INCLUDES_H_ */

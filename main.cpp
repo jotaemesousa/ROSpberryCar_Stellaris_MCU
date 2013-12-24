@@ -1,14 +1,16 @@
 #include "common_includes.h"
 #include "defined_macros.h"
-
-
+#include "comm.h"
 
 #include "Utilities/servo.h"
+#include "remote_defines.h"
+#include "Utilities/pid.h"
+#include "Utilities/gpio_pwm_lights.h"
 
 extern "C"
 {
 
-void configurePWM(void);
+//void configurePWM(void);
 void configureGPIO(void);
 void SysTickHandler();
 uint32_t millis();
@@ -16,13 +18,6 @@ uint32_t millis();
 static unsigned long milliSec = 0;
 
 }
-// testes
-int min1 = 1023, max1 = 0, min2 = 1023, max2 = 0;
-
-
-#include "comm.h"
-#include "remote_defines.h"
-#include "Utilities/pid.h"
 
 static unsigned long ulClockMS=0;
 pid velocity_pid = pid();
@@ -33,8 +28,6 @@ unsigned long last_dongle_millis = 0, last_uart_millis= 0, last_dongle_millis_pi
 bool convert_values(RC_remote &in, RC_Param &car_param, RC_Cmds &out);
 void updateLights(RC_remote &in);
 void drive_pwm(int pwm, bool brake);
-
-
 
 int main(void)
 {
@@ -71,17 +64,26 @@ int main(void)
 #endif
 	servo_init();
 	servo_setPosition(90);
+#ifdef DEBUG
+	UARTprintf("done\n");
+#endif
 
 #ifdef DEBUG
 	UARTprintf("Setting up PWM ... \n");
 #endif
 	configurePWM();
 	configureGPIO();
-
-	UARTprintf("Starting QEI...");
-	encoder_init();
+#ifdef DEBUG
 	UARTprintf("done\n");
+#endif
 
+#ifdef DEBUG
+	UARTprintf("Starting QEI...");
+#endif
+	encoder_init();
+#ifdef DEBUG
+	UARTprintf("done\n");
+#endif
 
 #ifdef DEBUG
 	UARTprintf("SysCtlPeripheralEnable(SYSCTL_PERIPH_I2C0)\n");
@@ -104,6 +106,9 @@ int main(void)
 #endif
 
 #ifdef USE_I2C
+#ifdef DEBUG
+	UARTprintf("Setting up I2C\n");
+#endif
 	//I2C
 	SysCtlPeripheralEnable(SYSCTL_PERIPH_I2C0);
 	SysCtlPeripheralEnable(SYSCTL_PERIPH_GPIOB);
@@ -111,20 +116,25 @@ int main(void)
 	I2CMasterInitExpClk(I2C0_MASTER_BASE,SysCtlClockGet(),false);  //false = 100khz , true = 400khz
 	I2CMasterTimeoutSet(I2C0_MASTER_BASE, 1000);
 #ifdef DEBUG
-	UARTprintf("I2C configured\n");
+	UARTprintf("done\n");
 #endif
 #endif
 
 #ifdef USE_I2C
 #ifdef USE_INA226
+#ifdef DEBUG
+	UARTprintf("Setting up INA226\n");
+#endif
 	power_meter = INA226(0x45);
 	power_meter.set_sample_average(4);
 	power_meter.set_calibration_value(445);
 	power_meter.set_bus_voltage_limit(7.0);
 	power_meter.set_mask_enable_register(BUS_UNDER_LIMIT);
+#ifdef DEBUG
+	UARTprintf("done\n");
 #endif
 #endif
-
+#endif
 
 
 	while (1)
@@ -141,40 +151,31 @@ int main(void)
 			le_sum += le;
 			re_sum += re;
 		}
-
-		if(millis() - last_uart_millis > 1000)
-		{
-			last_uart_millis = millis();
-
-			UARTprintf(":Enc %03d %03d;\n", le_sum, re_sum);
-			le_sum = 0;
-			re_sum = 0;
-		}
 	}
 }
 
-void configurePWM(void)
-{
-	MAP_SysCtlPeripheralEnable(SYSCTL_PERIPH_PWM);
-	MAP_SysCtlPeripheralEnable(SYSCTL_PERIPH_GPIOA);
-	MAP_SysCtlPeripheralEnable(SYSCTL_PERIPH_GPIOC);
-	MAP_GPIOPinTypePWM(GPIO_PORTA_BASE, GPIO_PIN_6 | GPIO_PIN_7);
-
-	MAP_PWMGenConfigure(PWM_BASE,PWM_GEN_2,PWM_GEN_MODE_DOWN|PWM_GEN_MODE_NO_SYNC);
-	MAP_PWMGenConfigure(PWM_BASE,PWM_GEN_3,PWM_GEN_MODE_DOWN|PWM_GEN_MODE_NO_SYNC);
-
-	MAP_PWMGenPeriodSet(PWM_BASE, PWM_GEN_2, MAX_PWM_DRIVE);		// Drive PWM
-	MAP_PWMGenPeriodSet(PWM_BASE, PWM_GEN_3, MAX_PWM_DRIVE);		// Drive PWM
-
-	MAP_PWMGenEnable(PWM_BASE, PWM_GEN_2);
-	MAP_PWMGenEnable(PWM_BASE, PWM_GEN_3);
-
-	MAP_PWMOutputState(PWM_BASE, PWM_OUT_4_BIT | PWM_OUT_5_BIT, false);
-
-	MAP_GPIOPinTypeGPIOOutput(GPIO_PORTC_BASE, GPIO_PIN_6);
-	MAP_GPIOPinTypeGPIOOutput(GPIO_PORTC_BASE, GPIO_PIN_4);
-
-}
+//void configurePWM(void)
+//{
+//	MAP_SysCtlPeripheralEnable(SYSCTL_PERIPH_PWM);
+//	MAP_SysCtlPeripheralEnable(SYSCTL_PERIPH_GPIOA);
+//	MAP_SysCtlPeripheralEnable(SYSCTL_PERIPH_GPIOC);
+//	MAP_GPIOPinTypePWM(GPIO_PORTA_BASE, GPIO_PIN_6 | GPIO_PIN_7);
+//
+//	MAP_PWMGenConfigure(PWM_BASE,PWM_GEN_2,PWM_GEN_MODE_DOWN|PWM_GEN_MODE_NO_SYNC);
+//	MAP_PWMGenConfigure(PWM_BASE,PWM_GEN_3,PWM_GEN_MODE_DOWN|PWM_GEN_MODE_NO_SYNC);
+//
+//	MAP_PWMGenPeriodSet(PWM_BASE, PWM_GEN_2, MAX_PWM_DRIVE);		// Drive PWM
+//	MAP_PWMGenPeriodSet(PWM_BASE, PWM_GEN_3, MAX_PWM_DRIVE);		// Drive PWM
+//
+//	MAP_PWMGenEnable(PWM_BASE, PWM_GEN_2);
+//	MAP_PWMGenEnable(PWM_BASE, PWM_GEN_3);
+//
+//	MAP_PWMOutputState(PWM_BASE, PWM_OUT_4_BIT | PWM_OUT_5_BIT, false);
+//
+//	MAP_GPIOPinTypeGPIOOutput(GPIO_PORTC_BASE, GPIO_PIN_6);
+//	MAP_GPIOPinTypeGPIOOutput(GPIO_PORTC_BASE, GPIO_PIN_4);
+//
+//}
 
 void configureGPIO(void)
 {
