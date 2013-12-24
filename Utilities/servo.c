@@ -35,33 +35,12 @@ void servo_init()
 
 }
 
-
-
 #define BASE 1560
 #define END  7810
 
 void servo_setPosition(int position)
 {
 	unsigned long value;
-//	int pos_temp;
-//
-//	if(position_remote == 0)
-//	{
-//		value =  BASE + (SERVO_CENTER_ANGLE * ((END-BASE)/180));
-//		PWMPulseWidthSet(PWM_BASE, PWM_OUT_7, value);
-//	}
-//	else if(position_remote < 0 && position_remote >= -100)
-//	{
-//		pos_temp = SERVO_CENTER_ANGLE + (SERVO_LEFT_ANGLE - SERVO_CENTER_ANGLE) * position_remote / -100;
-//		value =  BASE + (pos_temp * ((END-BASE)/180));
-//		PWMPulseWidthSet(PWM_BASE, PWM_OUT_7, value);
-//	}
-//	else if(position_remote > 0 && position_remote <= 100)
-//	{
-//		pos_temp = SERVO_CENTER_ANGLE + (SERVO_RIGHT_ANGLE - SERVO_CENTER_ANGLE) * position_remote / 100;
-//		value =  BASE + (pos_temp * ((END-BASE)/180));
-//		PWMPulseWidthSet(PWM_BASE, PWM_OUT_7, value);
-//	}
 
 	if (position >= 0 && position <= 180)
 	{

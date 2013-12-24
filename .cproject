@@ -53,11 +53,10 @@
 							<tool id="org.eclipse.cdt.cross.arm.gnu.summon.linux.elf.cpp.compiler.debug.414984875" name="ARM Summon Linux GCC C++ Compiler" superClass="org.eclipse.cdt.cross.arm.gnu.summon.linux.elf.cpp.compiler.debug">
 								<option id="org.eclipse.cdt.cross.arm.gnu.cpp.compiler.option.optimization.level.1285690642" name="Optimization level" superClass="org.eclipse.cdt.cross.arm.gnu.cpp.compiler.option.optimization.level" value="org.eclipse.cdt.cross.arm.gnu.base.option.optimization.level.none" valueType="enumerated"/>
 								<option id="org.eclipse.cdt.cross.arm.gnu.cpp.compiler.option.preprocessor.def.2141321260" name="Defined symbols (-D)" superClass="org.eclipse.cdt.cross.arm.gnu.cpp.compiler.option.preprocessor.def" valueType="definedSymbols">
+									<listOptionValue builtIn="false" value="USE_I2C"/>
+									<listOptionValue builtIn="false" value="USE_INA226"/>
 									<listOptionValue builtIn="false" value="TARGET_IS_DUSTDEVIL_RA0"/>
 									<listOptionValue builtIn="false" value="UART_BUFFERED"/>
-									<listOptionValue builtIn="false" value="USE__I2C1"/>
-									<listOptionValue builtIn="false" value="USE__INA226"/>
-									<listOptionValue builtIn="false" value="USE_NRF24_"/>
 									<listOptionValue builtIn="false" value="STELLARIS"/>
 								</option>
 								<option id="org.eclipse.cdt.cross.arm.gnu.cpp.compiler.option.include.paths.92195686" name="Include paths (-I)" superClass="org.eclipse.cdt.cross.arm.gnu.cpp.compiler.option.include.paths" valueType="includePath">
@@ -153,8 +152,11 @@
 								<option id="org.eclipse.cdt.cross.arm.gnu.cpp.compiler.option.optimization.level.2084892090" name="Optimization level" superClass="org.eclipse.cdt.cross.arm.gnu.cpp.compiler.option.optimization.level" value="org.eclipse.cdt.cross.arm.gnu.base.option.optimization.level.size" valueType="enumerated"/>
 								<option id="org.eclipse.cdt.cross.arm.gnu.cpp.compiler.option.preprocessor.def.809395029" name="Defined symbols (-D)" superClass="org.eclipse.cdt.cross.arm.gnu.cpp.compiler.option.preprocessor.def" valueType="definedSymbols">
 									<listOptionValue builtIn="false" value="TARGET_IS_DUSTDEVIL_RA0"/>
-									<listOptionValue builtIn="false" value="STELLARIS"/>
 									<listOptionValue builtIn="false" value="UART_BUFFERED"/>
+									<listOptionValue builtIn="false" value="USE_I2C"/>
+									<listOptionValue builtIn="false" value="USE_INA226"/>
+									<listOptionValue builtIn="false" value="USE_NRF24_"/>
+									<listOptionValue builtIn="false" value="STELLARIS"/>
 								</option>
 								<option id="org.eclipse.cdt.cross.arm.gnu.cpp.compiler.option.include.paths.275540537" name="Include paths (-I)" superClass="org.eclipse.cdt.cross.arm.gnu.cpp.compiler.option.include.paths" valueType="includePath">
 									<listOptionValue builtIn="false" value="/mnt/D/cenas_ARM/stellaris/driverlib"/>

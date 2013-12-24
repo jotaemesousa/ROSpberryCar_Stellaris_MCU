@@ -19,8 +19,8 @@
 #define STARTSTOP_BIT       0x08
 
 // use sensors
-#define USE_I2C
-#define USE_INA226
+//#define USE_I2C
+//#define USE_INA226
 //#define USE_NRF24
 
 #define SYSTICKS_PER_SECOND     1000

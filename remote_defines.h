@@ -8,13 +8,6 @@
 #ifndef REMOTE_DEFINES_H_
 #define REMOTE_DEFINES_H_
 
-#define COM_DRV_ZERO		694
-#define COM_DRV_FRONT		779
-#define COM_DRV_REAR		586
-#define COM_SERVO_ZERO		645
-#define COM_SERVO_RIGHT		737
-#define COM_SERVO_LEFT		536
-
 #define DRV_ZERO			0
 #define DRV_REAR			-50
 #define DRV_FRONT			50

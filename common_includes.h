@@ -29,9 +29,8 @@ extern "C" {
 #include "utils/ustdlib.h"
 #include <stdint.h>
 #include <driverlib/ssi.h>
-
-
 #include "timer.h"
+
 #include "Utilities/servo.h"
 
 }
