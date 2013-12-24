@@ -154,7 +154,7 @@ void SSIIntHandler(void)
 	SSIIntClear(SSI0_BASE, SSI_RXTO);
 
 	static int8_t bytes_left_to_send = 0;
-	static int8_t n_bytes_received = 0;
+	static uint8_t n_bytes_received = 0;
 	static SSI_Interrupt_State state_interrupt = RECEIVING_STATE;
 	static unsigned long received_byte = 0, buffer_index = 0;
 

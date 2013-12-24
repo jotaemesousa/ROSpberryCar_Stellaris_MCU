@@ -8,6 +8,8 @@
 #ifndef REMOTE_DEFINES_H_
 #define REMOTE_DEFINES_H_
 
+#include <stdint.h>
+
 #define DRV_ZERO			0
 #define DRV_REAR			-50
 #define DRV_FRONT			50
