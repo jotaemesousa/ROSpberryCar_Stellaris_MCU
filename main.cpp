@@ -18,10 +18,10 @@ static unsigned long milliSec = 0;
 }
 
 static unsigned long ulClockMS=0;
-pid velocity_pid = pid();
+
 INA226 power_meter;
 
-unsigned long last_dongle_millis = 0, last_uart_millis= 0, last_dongle_millis_pid = 0;
+unsigned long last_dongle_millis = 0, last_uart_millis= 0;
 
 
 int main(void)
@@ -52,7 +52,13 @@ int main(void)
 	// init SSI0 in slave mode
 	initSPIComm();
 
-	int16_t le_sum = 0, re_sum = 0 ;
+#ifdef DEBUG
+	UARTprintf("Setting up PID\n");
+#endif
+	initCarPID();
+#ifdef DEBUG
+	UARTprintf("done\n");
+#endif
 
 #ifdef DEBUG
 	UARTprintf("Setting up Servo ... \n");
@@ -82,22 +88,6 @@ int main(void)
 
 #ifdef DEBUG
 	UARTprintf("SysCtlPeripheralEnable(SYSCTL_PERIPH_I2C0)\n");
-#endif
-
-#ifdef DEBUG
-	UARTprintf("Setting up PID\n");
-#endif
-	velocity_pid.setGains(5.0,2.5,0.0);
-	velocity_pid.setSampleTime(0.050);
-	velocity_pid.setMaxAccumulatedError(40);
-	velocity_pid.setFilter(0.20);
-	velocity_pid.setMaxOutput(50);
-	velocity_pid.setMinOutput(-50);
-	velocity_pid.initSensor(0);
-	velocity_pid.setNewReference(0,1);
-
-#ifdef DEBUG
-	UARTprintf("done\n");
 #endif
 
 #ifdef USE_I2C
@@ -135,17 +125,7 @@ int main(void)
 	while (1)
 	{
 
-		if(millis() - last_dongle_millis_pid > 50)
-		{
-			last_dongle_millis_pid = millis();
 
-			int32_t le = 0, re=0, out = 0;
-			encoder_read_reset(&le, &re);
-			out = velocity_pid.run((le + re)/2);
-			drive_pwm(out,1);
-			le_sum += le;
-			re_sum += re;
-		}
 	}
 }
 
@@ -155,16 +135,6 @@ void SysTickHandler()
 	milliSec++;
 
 	communication_update_function();
-
-	//	if(millis() - ferrari288gto.last_millis > THRESHOLD_BETWEEN_MSG)
-	//	{
-	//		ferrari288gto.Drive = 0;
-	//		ferrari288gto.Steer = SERVO_CENTER_ANGLE;
-	//
-	//		//drive_pwm(0,0);
-	//
-	//		servo_setPosition(ferrari288gto.Steer);
-	//	}
 }
 
 uint32_t millis()

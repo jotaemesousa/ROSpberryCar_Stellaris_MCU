@@ -177,7 +177,8 @@ void SSIIntHandler(void)
 		if(n_bytes_received >= sizeof(ROSCASDataFromRASPI))
 		{
 			// update vars
-
+			addNewLinearVelocity(struct_to_receive.v_linear);
+			addNewAngularVelocity(struct_to_receive.v_angular);
 
 			if(struct_to_receive.cmd & ASK_DATA_BIT)
 			{
@@ -243,9 +244,15 @@ void SSIIntHandler(void)
 
 void communication_update_function(void)
 {
-	if(millis() - last_comm_millis > DELAY_BETWEEN_MSG)
-	{
-		drive_pwm(0,0);
-		servo_setPosition(SERVO_CENTER_ANGLE);
-	}
+//	if(millis() - last_comm_millis > DELAY_BETWEEN_MSG)
+//	{
+//		drive_pwm(0,0);
+//		servo_setPosition(SERVO_CENTER_ANGLE);
+//	}
+//	else
+//	{
+//		last_comm_millis = millis();
+//	}
+
+	updateCarParameters();
 }

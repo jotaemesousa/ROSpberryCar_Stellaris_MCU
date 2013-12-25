@@ -8,6 +8,20 @@
 
 static RC_Param car_param;
 static RC_Cmds out;
+static uint32_t last_millis_pid = 0;
+pid velocity_pid = pid();
+
+void initCarPID(void)
+{
+	velocity_pid.setGains(5.0,2.5,0.0);
+	velocity_pid.setSampleTime(0.050);
+	velocity_pid.setMaxAccumulatedError(40);
+	velocity_pid.setFilter(0.20);
+	velocity_pid.setMaxOutput(50);
+	velocity_pid.setMinOutput(-50);
+	velocity_pid.initSensor(0);
+	velocity_pid.setNewReference(0,1);
+}
 
 bool convert_values(RC_remote &in)
 {
@@ -95,16 +109,24 @@ bool convert_values(RC_remote &in)
 
 void updateCarParameters(void)
 {
+	if(millis() - last_millis_pid > 50)
+	{
+		last_millis_pid = millis();
 
+		int32_t le = 0, re=0, out = 0;
+		encoder_read_reset(&le, &re);
+		out = velocity_pid.run((le + re)/2);
+		drive_pwm(out,1);
+	}
 }
 
 bool addNewLinearVelocity(int32_t v)
 {
-
+	velocity_pid.setNewReference((float)v,0);
 	return false;
 }
 
-bool addNewAbgularVelocity(int32_t v)
+bool addNewAngularVelocity(int32_t v)
 {
 	return false;
 }
@@ -143,3 +165,5 @@ void setLights(void)
 {
 
 }
+
+

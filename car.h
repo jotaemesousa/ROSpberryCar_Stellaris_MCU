@@ -12,6 +12,8 @@
 #include "remote_defines.h"
 #include "Utilities/servo.h"
 #include "Utilities/gpio_pwm_lights.h"
+#include "Utilities/Encoder.h"
+#include "Utilities/pid.h"
 
 typedef struct ROSpberryCar
 {
@@ -29,11 +31,13 @@ typedef struct rc_cmds
 	unsigned long int last_millis;
 }RC_Cmds;
 
+void initCarPID(void);
+
 bool convert_values(RC_remote &in);
 void updateCarParameters(void);
 
 bool addNewLinearVelocity(int32_t v);
-bool addNewAbgularVelocity(int32_t v);
+bool addNewAngularVelocity(int32_t v);
 
 void resetLeftEncoder(void);
 void resetRightEncoder(void);
@@ -45,5 +49,15 @@ void addLeftEncoder(int32_t deltaLeft);
 void addRightEncoder(int32_t deltaRight);
 
 void setLights(void);
+
+#ifdef __cplusplus
+extern "C"
+{
+#endif
+extern uint32_t millis();
+void SSIIntHandler(void);
+#ifdef __cplusplus
+}
+#endif
 
 #endif /* CAR_H_ */

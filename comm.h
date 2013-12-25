@@ -13,6 +13,7 @@
 #include "Utilities/Encoder.h"
 #include "Utilities/INA226.h"
 #include "Utilities/servo.h"
+#include "car.h"
 #include <stdio.h>
 #include "defined_macros.h"
 

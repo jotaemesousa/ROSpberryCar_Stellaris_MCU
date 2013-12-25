@@ -148,19 +148,27 @@ void updateLights(RC_remote &in)
 	switch (front_state)
 	{
 	case 0:
-		PWMPulseWidthSet(PWM_BASE, PWM_OUT_6, 0);
+		//PWMPulseWidthSet(PWM_BASE, PWM_OUT_6, 0);
+		MAP_PWMOutputState(PWM_BASE, PWM_OUT_6_BIT, false);
 		break;
 
 	case 1:
-		PWMPulseWidthSet(PWM_BASE, PWM_OUT_6, PWMGenPeriodGet(PWM_BASE, PWM_GEN_3) / 6);
+		//PWMPulseWidthSet(PWM_BASE, PWM_OUT_6, PWMGenPeriodGet(PWM_BASE, PWM_GEN_3) / 6);
+		MAP_PWMOutputState(PWM_BASE, PWM_OUT_6_BIT, true);
+		MAP_PWMPulseWidthSet(PWM_BASE, PWM_OUT_6, MAP_PWMGenPeriodGet(PWM_BASE, PWM_GEN_3)/6);
 		break;
 
 	case 2:
-		PWMPulseWidthSet(PWM_BASE, PWM_OUT_6, PWMGenPeriodGet(PWM_BASE, PWM_GEN_3) / 2);
+		//PWMPulseWidthSet(PWM_BASE, PWM_OUT_6, PWMGenPeriodGet(PWM_BASE, PWM_GEN_3) / 2);
+		MAP_PWMOutputState(PWM_BASE, PWM_OUT_6_BIT, true);
+		MAP_PWMPulseWidthSet(PWM_BASE, PWM_OUT_6, MAP_PWMGenPeriodGet(PWM_BASE, PWM_GEN_3)/2);
+
 		break;
 
 	case 3:
 		PWMPulseWidthSet(PWM_BASE, PWM_OUT_6, PWMGenPeriodGet(PWM_BASE, PWM_GEN_3)-5);
+		MAP_PWMOutputState(PWM_BASE, PWM_OUT_6_BIT, true);
+		MAP_PWMPulseWidthSet(PWM_BASE, PWM_OUT_6, MAP_PWMGenPeriodGet(PWM_BASE, PWM_GEN_3));
 		break;
 	}
 
@@ -169,11 +177,15 @@ void updateLights(RC_remote &in)
 	case 0:
 		if((in.buttons & R1_BUTTON) == R1_BUTTON)
 		{
-			PWMPulseWidthSet(PWM_BASE, PWM_OUT_7, PWMGenPeriodGet(PWM_BASE, PWM_GEN_3) - 5);
+			//PWMPulseWidthSet(PWM_BASE, PWM_OUT_7, PWMGenPeriodGet(PWM_BASE, PWM_GEN_3) - 5);
+			MAP_PWMOutputState(PWM_BASE, PWM_OUT_7_BIT, true);
+			MAP_PWMPulseWidthSet(PWM_BASE, PWM_OUT_7, MAP_PWMGenPeriodGet(PWM_BASE, PWM_GEN_3));
+
 		}
 		else
 		{
-			PWMPulseWidthSet(PWM_BASE, PWM_OUT_7, 0);
+			//PWMPulseWidthSet(PWM_BASE, PWM_OUT_7, 0);
+			MAP_PWMOutputState(PWM_BASE, PWM_OUT_7_BIT, false);
 		}
 		break;
 	case 1:
@@ -182,11 +194,15 @@ void updateLights(RC_remote &in)
 
 		if((in.buttons & R1_BUTTON) == R1_BUTTON)
 		{
-			PWMPulseWidthSet(PWM_BASE, PWM_OUT_7, PWMGenPeriodGet(PWM_BASE, PWM_GEN_3) - 5);
+			//PWMPulseWidthSet(PWM_BASE, PWM_OUT_7, PWMGenPeriodGet(PWM_BASE, PWM_GEN_3) - 5);
+			MAP_PWMOutputState(PWM_BASE, PWM_OUT_7_BIT, true);
+			MAP_PWMPulseWidthSet(PWM_BASE, PWM_OUT_7, MAP_PWMGenPeriodGet(PWM_BASE, PWM_GEN_3));
 		}
 		else
 		{
-			PWMPulseWidthSet(PWM_BASE, PWM_OUT_7, PWMGenPeriodGet(PWM_BASE, PWM_GEN_3) / 3);
+//			PWMPulseWidthSet(PWM_BASE, PWM_OUT_7, PWMGenPeriodGet(PWM_BASE, PWM_GEN_3) / 3);
+			MAP_PWMOutputState(PWM_BASE, PWM_OUT_7_BIT, true);
+			MAP_PWMPulseWidthSet(PWM_BASE, PWM_OUT_7, MAP_PWMGenPeriodGet(PWM_BASE, PWM_GEN_3) / 3);
 		}
 		break;
 
