@@ -64,6 +64,7 @@ uint16_t INA226::read_register(uint8_t reg)
 
 		return (conf_reg_high_ << 8) | conf_reg_low_;
 	}
+	return 0;
 }
 
 void INA226::write_register(uint8_t reg, uint16_t value)

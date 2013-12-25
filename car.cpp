@@ -6,8 +6,10 @@
  */
 #include "car.h"
 
+static RC_Param car_param;
+static RC_Cmds out;
 
-bool convert_values(RC_remote &in, RC_Param &car_param, RC_Cmds &out)
+bool convert_values(RC_remote &in)
 {
 	float steer_factor = 1;
 	static bool steer_mode = 0;
@@ -91,3 +93,53 @@ bool convert_values(RC_remote &in, RC_Param &car_param, RC_Cmds &out)
 	return true;
 }
 
+void updateCarParameters(void)
+{
+
+}
+
+bool addNewLinearVelocity(int32_t v)
+{
+
+	return false;
+}
+
+bool addNewAbgularVelocity(int32_t v)
+{
+	return false;
+}
+
+void resetLeftEncoder(void)
+{
+	car_param.left_encoder = 0;
+}
+
+void resetRightEncoder(void)
+{
+	car_param.right_encoder = 0;
+}
+
+int32_t getLeftEncoder(void)
+{
+	return car_param.left_encoder;
+}
+
+int32_t getRightEncoder(void)
+{
+	return car_param.right_encoder;
+}
+
+void addLeftEncoder(int32_t deltaLeft)
+{
+	car_param.right_encoder += deltaLeft;
+}
+
+void addRightEncoder(int32_t deltaRight)
+{
+	car_param.right_encoder += deltaRight;
+}
+
+void setLights(void)
+{
+
+}
