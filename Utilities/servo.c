@@ -6,17 +6,6 @@
  */
 
 #include "servo.h"
-//#include <inc/lm3s2776.h>
-//#include <inc/hw_types.h>
-//#include <inc/hw_memmap.h>
-//#include <driverlib/debug.h>
-//#include <driverlib/sysctl.h>
-//#include <driverlib/systick.h>
-//#include <driverlib/gpio.h>
-//#include <driverlib/pwm.h>
-//#include "utils/uartstdio.h"
-//#include "utils/ustdlib.h"
-#include "../common_includes.h"
 
 //62500 count values
 
@@ -39,9 +28,9 @@ void servo_init()
 #define BASE 1560
 #define END  7810
 
-void servo_setPosition(int position)
+void servo_setPosition(int32_t position)
 {
-	unsigned long value;
+	uint32_t value;
 
 	if (position >= 0 && position <= 180)
 	{
@@ -51,3 +40,23 @@ void servo_setPosition(int position)
 
 }
 
+int32_t servo_valueMappedToAngle(int8_t value)
+{
+	if(value <= -127)
+	{
+		return SERVO_LEFT_ANGLE;
+	}
+	else if(value >= 127)
+	{
+		return SERVO_RIGHT_ANGLE;
+	}
+	else if(value < 0 && value > -127)
+	{
+		return (-value * (SERVO_LEFT_ANGLE - SERVO_CENTER_ANGLE))/(127) + SERVO_CENTER_ANGLE;
+	}
+	else if(value > 0 && value < 127)
+	{
+		return ((value * (SERVO_RIGHT_ANGLE - SERVO_CENTER_ANGLE))/127) + SERVO_CENTER_ANGLE;
+	}
+	return SERVO_CENTER_ANGLE;
+}
