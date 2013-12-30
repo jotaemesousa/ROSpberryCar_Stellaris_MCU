@@ -10,10 +10,12 @@
 
 #include "common_includes.h"
 #include "remote_defines.h"
+#include "defined_macros.h"
 #include "Utilities/servo.h"
 #include "Utilities/gpio_pwm_lights.h"
 #include "Utilities/Encoder.h"
 #include "Utilities/pid.h"
+#include "Utilities/INA226.h"
 
 typedef struct ROSpberryCar
 {
@@ -32,6 +34,7 @@ typedef struct rc_cmds
 }RC_Cmds;
 
 void initCarPID(void);
+void initINA226(void);
 
 bool convert_values(RC_remote &in);
 void updateCarParameters(void);

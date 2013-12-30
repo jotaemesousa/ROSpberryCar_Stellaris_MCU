@@ -10,6 +10,7 @@ static RC_Param car_param;
 static RC_Cmds out;
 static uint32_t last_millis_pid = 0;
 pid velocity_pid = pid();
+INA226 power_meter;
 
 void initCarPID(void)
 {
@@ -21,6 +22,15 @@ void initCarPID(void)
 	velocity_pid.setMinOutput(-50);
 	velocity_pid.initSensor(0);
 	velocity_pid.setNewReference(0,1);
+}
+
+void initINA226(void)
+{
+	power_meter = INA226(INA226_I2C_ADDR);
+	power_meter.set_sample_average(4);
+	power_meter.set_calibration_value(445);
+	power_meter.set_bus_voltage_limit(7.0);
+	power_meter.set_mask_enable_register(BUS_UNDER_LIMIT);
 }
 
 bool convert_values(RC_remote &in)

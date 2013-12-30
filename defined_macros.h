@@ -26,15 +26,18 @@
 //#define USE_INA226
 //#define USE_NRF24
 
-#define SYSTICKS_PER_SECOND     1000
+// INA226 addr
+#define INA226_I2C_ADDR		0x45
+
+#define SYSTICKS_PER_SECOND	1000
 
 // HEARTBEAT
-#define TICKS_PER_SECOND 		1000
-#define DELAY_BETWEEN_MSG		250
+#define TICKS_PER_SECOND 	1000
+#define DELAY_BETWEEN_MSG	250
 
 // servo and drive
-#define MAX_PWM_STEER			100
-#define MAX_PWM_DRIVE			10000
+#define MAX_PWM_STEER		100
+#define MAX_PWM_DRIVE		10000
 
 // debug
 #define DEBUG

@@ -24,6 +24,7 @@ void configurePWM(void)
 	MAP_PWMGenEnable(PWM_BASE, PWM_GEN_3);
 
 	MAP_PWMOutputState(PWM_BASE, PWM_OUT_4_BIT | PWM_OUT_5_BIT, false);
+	MAP_PWMOutputState(PWM_BASE, PWM_OUT_6_BIT | PWM_OUT_7_BIT, false);
 
 	MAP_GPIOPinTypeGPIOOutput(GPIO_PORTC_BASE, GPIO_PIN_6);
 	MAP_GPIOPinTypeGPIOOutput(GPIO_PORTC_BASE, GPIO_PIN_4);

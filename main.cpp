@@ -9,19 +9,13 @@
 
 extern "C"
 {
-
 void SysTickHandler();
 uint32_t millis();
 
 static unsigned long milliSec = 0;
-
 }
 
 static unsigned long ulClockMS=0;
-
-INA226 power_meter;
-
-unsigned long last_dongle_millis = 0, last_uart_millis= 0;
 
 
 int main(void)
@@ -98,7 +92,7 @@ int main(void)
 	SysCtlPeripheralEnable(SYSCTL_PERIPH_I2C0);
 	SysCtlPeripheralEnable(SYSCTL_PERIPH_GPIOB);
 	GPIOPinTypeI2C(GPIO_PORTB_BASE,GPIO_PIN_2 | GPIO_PIN_3);
-	I2CMasterInitExpClk(I2C0_MASTER_BASE,SysCtlClockGet(),false);  //false = 100khz , true = 400khz
+	I2CMasterInitExpClk(I2C0_MASTER_BASE,SysCtlClockGet(),true);  //false = 100khz , true = 400khz
 	I2CMasterTimeoutSet(I2C0_MASTER_BASE, 1000);
 #ifdef DEBUG
 	UARTprintf("done\n");
@@ -110,11 +104,7 @@ int main(void)
 #ifdef DEBUG
 	UARTprintf("Setting up INA226\n");
 #endif
-	power_meter = INA226(0x45);
-	power_meter.set_sample_average(4);
-	power_meter.set_calibration_value(445);
-	power_meter.set_bus_voltage_limit(7.0);
-	power_meter.set_mask_enable_register(BUS_UNDER_LIMIT);
+	initINA226();
 #ifdef DEBUG
 	UARTprintf("done\n");
 #endif
@@ -124,7 +114,6 @@ int main(void)
 
 	while (1)
 	{
-
 
 	}
 }
