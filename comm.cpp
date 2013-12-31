@@ -45,8 +45,8 @@ void initSPIComm(void)
 	SSIEnable(SSI0_BASE);
 
 	SSIIntRegister(SSI0_BASE, SSIIntHandler);
-	SSIIntClear(SSI0_BASE, SSI_RXTO /*| SSI_RXFF*/);
-	SSIIntEnable(SSI0_BASE, SSI_RXTO /*| SSI_RXFF*/);
+	SSIIntClear(SSI0_BASE, SSI_RXFF);
+	SSIIntEnable(SSI0_BASE, SSI_RXFF);
 	IntEnable(INT_SSI0);
 }
 
@@ -151,7 +151,7 @@ extern "C"
 
 void SSIIntHandler(void)
 {
-	SSIIntClear(SSI0_BASE, SSI_RXTO);
+	SSIIntClear(SSI0_BASE, SSI_RXFF);
 
 	static int8_t bytes_left_to_send = 0;
 	static uint8_t n_bytes_received = 0;
@@ -166,19 +166,22 @@ void SSIIntHandler(void)
 	case RECEIVING_STATE:
 
 		// Receives up to 4 bytes (minimum bytes to trigger the interrupt
-		if(SSIDataGetNonBlocking(SSI0_BASE, &received_byte))
+		for (int i = 0; i < 4; ++i)
 		{
+			if(SSIDataGetNonBlocking(SSI0_BASE, &received_byte))
+			{
 
-			*(pointer_received + n_bytes_received) = received_byte;
-			buffer_index++;
-			n_bytes_received++;
+				*(pointer_received + n_bytes_received) = received_byte;
+				buffer_index++;
+				n_bytes_received++;
+			}
 		}
-
 		if(n_bytes_received >= sizeof(ROSCASDataFromRASPI))
 		{
 			// update vars
 			addNewLinearVelocity(struct_to_receive.v_linear);
 			addNewAngularVelocity(struct_to_receive.v_angular);
+			last_comm_millis = millis();
 
 			if(struct_to_receive.cmd & ASK_DATA_BIT)
 			{
@@ -202,8 +205,12 @@ void SSIIntHandler(void)
 				}
 				state_interrupt = SENDING_AFTER_RECEIVING;
 				bytes_left_to_send = sizeof( ROSCASDataToRASPI);
-				SSIDataPutNonBlocking(SSI0_BASE, pointer_send[sizeof( ROSCASDataToRASPI) - bytes_left_to_send]);
-				bytes_left_to_send--;
+
+				for(int i = 0; i < 4; i++)
+				{
+					SSIDataPutNonBlocking(SSI0_BASE, pointer_send[sizeof( ROSCASDataToRASPI) - bytes_left_to_send]);
+					bytes_left_to_send--;
+				}
 			}
 			else
 			{
@@ -220,20 +227,22 @@ void SSIIntHandler(void)
 
 	case SENDING_AFTER_RECEIVING:
 
-		SSIDataGetNonBlocking(SSI0_BASE, &received_byte);
-
-		if(bytes_left_to_send > 0)
+		for(int i = 0; i < 4; i++)
 		{
-			SSIDataPutNonBlocking(SSI0_BASE, pointer_send[sizeof( ROSCASDataToRASPI) - bytes_left_to_send]);
-			bytes_left_to_send--;
-		}
-		else
-		{
-			state_interrupt = RECEIVING_STATE;
-			n_bytes_received = 0;
-			buffer_index = 0;
-		}
+			SSIDataGetNonBlocking(SSI0_BASE, &received_byte);
 
+			if(bytes_left_to_send > 0)
+			{
+				SSIDataPutNonBlocking(SSI0_BASE, pointer_send[sizeof( ROSCASDataToRASPI) - bytes_left_to_send]);
+				bytes_left_to_send--;
+			}
+			else
+			{
+				state_interrupt = RECEIVING_STATE;
+				n_bytes_received = 0;
+				buffer_index = 0;
+			}
+		}
 
 		break;
 	}
@@ -244,15 +253,12 @@ void SSIIntHandler(void)
 
 void communication_update_function(void)
 {
-//	if(millis() - last_comm_millis > DELAY_BETWEEN_MSG)
-//	{
-//		drive_pwm(0,0);
-//		servo_setPosition(SERVO_CENTER_ANGLE);
-//	}
-//	else
-//	{
-//		last_comm_millis = millis();
-//	}
+	if(millis() - last_comm_millis > DELAY_BETWEEN_MSG)
+	{
+		addNewLinearVelocity(0);
+		drive_pwm(0,1);
+		servo_setPosition(SERVO_CENTER_ANGLE);
+	}
 
 	updateCarParameters();
 }

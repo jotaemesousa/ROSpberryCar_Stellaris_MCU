@@ -31,7 +31,7 @@
 								<inputType id="org.eclipse.cdt.cross.arm.gnu.summon.linux.assembler.base.input.1899958238" superClass="org.eclipse.cdt.cross.arm.gnu.summon.linux.assembler.base.input"/>
 							</tool>
 							<tool id="org.eclipse.cdt.cross.arm.gnu.summon.linux.elf.c.compiler.debug.1266601105" name="ARM Summon Linux GCC C Compiler" superClass="org.eclipse.cdt.cross.arm.gnu.summon.linux.elf.c.compiler.debug">
-								<option id="org.eclipse.cdt.cross.arm.gnu.c.compiler.option.optimization.level.877008756" name="Optimization level" superClass="org.eclipse.cdt.cross.arm.gnu.c.compiler.option.optimization.level" value="org.eclipse.cdt.cross.arm.gnu.base.option.optimization.level.more" valueType="enumerated"/>
+								<option id="org.eclipse.cdt.cross.arm.gnu.c.compiler.option.optimization.level.877008756" name="Optimization level" superClass="org.eclipse.cdt.cross.arm.gnu.c.compiler.option.optimization.level" value="org.eclipse.cdt.cross.arm.gnu.base.option.optimization.level.most" valueType="enumerated"/>
 								<option id="org.eclipse.cdt.cross.arm.gnu.c.compiler.option.preprocessor.def.502330583" name="Defined symbols (-D)" superClass="org.eclipse.cdt.cross.arm.gnu.c.compiler.option.preprocessor.def" valueType="definedSymbols">
 									<listOptionValue builtIn="false" value="TARGET_IS_DUSTDEVIL_RA0"/>
 									<listOptionValue builtIn="false" value="UART_BUFFERED"/>
@@ -51,7 +51,7 @@
 								<inputType id="org.eclipse.cdt.cross.arm.gnu.summon.linux.c.compiler.base.input.98990828" superClass="org.eclipse.cdt.cross.arm.gnu.summon.linux.c.compiler.base.input"/>
 							</tool>
 							<tool id="org.eclipse.cdt.cross.arm.gnu.summon.linux.elf.cpp.compiler.debug.414984875" name="ARM Summon Linux GCC C++ Compiler" superClass="org.eclipse.cdt.cross.arm.gnu.summon.linux.elf.cpp.compiler.debug">
-								<option id="org.eclipse.cdt.cross.arm.gnu.cpp.compiler.option.optimization.level.1285690642" name="Optimization level" superClass="org.eclipse.cdt.cross.arm.gnu.cpp.compiler.option.optimization.level" value="org.eclipse.cdt.cross.arm.gnu.base.option.optimization.level.more" valueType="enumerated"/>
+								<option id="org.eclipse.cdt.cross.arm.gnu.cpp.compiler.option.optimization.level.1285690642" name="Optimization level" superClass="org.eclipse.cdt.cross.arm.gnu.cpp.compiler.option.optimization.level" value="org.eclipse.cdt.cross.arm.gnu.base.option.optimization.level.most" valueType="enumerated"/>
 								<option id="org.eclipse.cdt.cross.arm.gnu.cpp.compiler.option.preprocessor.def.2141321260" name="Defined symbols (-D)" superClass="org.eclipse.cdt.cross.arm.gnu.cpp.compiler.option.preprocessor.def" valueType="definedSymbols">
 									<listOptionValue builtIn="false" value="USE_I2C"/>
 									<listOptionValue builtIn="false" value="USE_INA226"/>
@@ -74,7 +74,7 @@
 							<tool id="org.eclipse.cdt.cross.arm.gnu.summon.linux.elf.c.linker.debug.1127868880" name="ARM Summon Linux GCC C Linker" superClass="org.eclipse.cdt.cross.arm.gnu.summon.linux.elf.c.linker.debug"/>
 							<tool id="org.eclipse.cdt.cross.arm.gnu.summon.linux.elf.cpp.linker.debug.521653961" name="ARM Summon Linux GCC C++ Linker" superClass="org.eclipse.cdt.cross.arm.gnu.summon.linux.elf.cpp.linker.debug">
 								<option id="org.eclipse.cdt.cross.arm.gnu.cpp.link.option.paths.494053029" name="Library search path (-L)" superClass="org.eclipse.cdt.cross.arm.gnu.cpp.link.option.paths" valueType="libPaths">
-									<listOptionValue builtIn="false" value="/home/joao/StellarisWare/driverlib/gcc-cm3"/>
+									<listOptionValue builtIn="false" value="${StellarisWare}/driverlib/gcc-cm3"/>
 								</option>
 								<option id="org.eclipse.cdt.cross.arm.gnu.cpp.link.option.libs.1114448165" name="Libraries (-l)" superClass="org.eclipse.cdt.cross.arm.gnu.cpp.link.option.libs" valueType="libs">
 									<listOptionValue builtIn="false" value="driver-cm3"/>
@@ -131,52 +131,58 @@
 								<inputType id="org.eclipse.cdt.cross.arm.gnu.summon.linux.assembler.base.input.1950878265" superClass="org.eclipse.cdt.cross.arm.gnu.summon.linux.assembler.base.input"/>
 							</tool>
 							<tool id="org.eclipse.cdt.cross.arm.gnu.summon.linux.elf.c.compiler.release.507630003" name="ARM Summon Linux GCC C Compiler" superClass="org.eclipse.cdt.cross.arm.gnu.summon.linux.elf.c.compiler.release">
-								<option id="org.eclipse.cdt.cross.arm.gnu.c.compiler.option.optimization.level.1149903941" name="Optimization level" superClass="org.eclipse.cdt.cross.arm.gnu.c.compiler.option.optimization.level" value="org.eclipse.cdt.cross.arm.gnu.base.option.optimization.level.size" valueType="enumerated"/>
+								<option id="org.eclipse.cdt.cross.arm.gnu.c.compiler.option.optimization.level.1149903941" name="Optimization level" superClass="org.eclipse.cdt.cross.arm.gnu.c.compiler.option.optimization.level" value="org.eclipse.cdt.cross.arm.gnu.base.option.optimization.level.most" valueType="enumerated"/>
 								<option id="org.eclipse.cdt.cross.arm.gnu.c.compiler.option.preprocessor.def.152384192" name="Defined symbols (-D)" superClass="org.eclipse.cdt.cross.arm.gnu.c.compiler.option.preprocessor.def" valueType="definedSymbols">
 									<listOptionValue builtIn="false" value="TARGET_IS_DUSTDEVIL_RA0"/>
-									<listOptionValue builtIn="false" value="STELLARIS"/>
 									<listOptionValue builtIn="false" value="UART_BUFFERED"/>
+									<listOptionValue builtIn="false" value="STELLARIS"/>
 								</option>
 								<option id="org.eclipse.cdt.cross.arm.gnu.c.compiler.option.include.paths.1194157989" name="Include paths (-I)" superClass="org.eclipse.cdt.cross.arm.gnu.c.compiler.option.include.paths" valueType="includePath">
+									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/${ProjName}/libraries}&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${STELLARISWARE}&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${STELLARISWARE}/driverlib&quot;"/>
+									<listOptionValue builtIn="false" value="/home/joao/StellarisWare/utils"/>
 									<listOptionValue builtIn="false" value="/mnt/D/cenas_ARM/stellaris/driverlib"/>
 									<listOptionValue builtIn="false" value="/mnt/D/cenas_ARM/stellaris"/>
-									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/${ProjName}/libraries}&quot;"/>
-									<listOptionValue builtIn="false" value="/home/joao/StellarisWare/utils"/>
 								</option>
 								<option id="org.eclipse.cdt.cross.arm.gnu.c.compiler.option.optimization.functionsections.723414581" name="Function sections (-ffunction-sections)" superClass="org.eclipse.cdt.cross.arm.gnu.c.compiler.option.optimization.functionsections" value="true" valueType="boolean"/>
 								<option id="org.eclipse.cdt.cross.arm.gnu.c.compiler.option.optimization.datasections.719022995" name="Data sections (-fdata-sections)" superClass="org.eclipse.cdt.cross.arm.gnu.c.compiler.option.optimization.datasections" value="true" valueType="boolean"/>
 								<option id="org.eclipse.cdt.cross.arm.gnu.c.compiler.option.misc.std.1320846267" name="Language Standard" superClass="org.eclipse.cdt.cross.arm.gnu.c.compiler.option.misc.std" value="org.eclipse.cdt.cross.arm.gnu.c.compiler.option.misc.std.gnu99" valueType="enumerated"/>
+								<option id="org.eclipse.cdt.cross.arm.gnu.c.compiler.option.optimization.packstruct.253892079" superClass="org.eclipse.cdt.cross.arm.gnu.c.compiler.option.optimization.packstruct" value="true" valueType="boolean"/>
 								<inputType id="org.eclipse.cdt.cross.arm.gnu.summon.linux.c.compiler.base.input.840970692" superClass="org.eclipse.cdt.cross.arm.gnu.summon.linux.c.compiler.base.input"/>
 							</tool>
 							<tool id="org.eclipse.cdt.cross.arm.gnu.summon.linux.elf.cpp.compiler.release.1437017844" name="ARM Summon Linux GCC C++ Compiler" superClass="org.eclipse.cdt.cross.arm.gnu.summon.linux.elf.cpp.compiler.release">
-								<option id="org.eclipse.cdt.cross.arm.gnu.cpp.compiler.option.optimization.level.2084892090" name="Optimization level" superClass="org.eclipse.cdt.cross.arm.gnu.cpp.compiler.option.optimization.level" value="org.eclipse.cdt.cross.arm.gnu.base.option.optimization.level.size" valueType="enumerated"/>
+								<option id="org.eclipse.cdt.cross.arm.gnu.cpp.compiler.option.optimization.level.2084892090" name="Optimization level" superClass="org.eclipse.cdt.cross.arm.gnu.cpp.compiler.option.optimization.level" value="org.eclipse.cdt.cross.arm.gnu.base.option.optimization.level.most" valueType="enumerated"/>
 								<option id="org.eclipse.cdt.cross.arm.gnu.cpp.compiler.option.preprocessor.def.809395029" name="Defined symbols (-D)" superClass="org.eclipse.cdt.cross.arm.gnu.cpp.compiler.option.preprocessor.def" valueType="definedSymbols">
-									<listOptionValue builtIn="false" value="TARGET_IS_DUSTDEVIL_RA0"/>
-									<listOptionValue builtIn="false" value="UART_BUFFERED"/>
 									<listOptionValue builtIn="false" value="USE_I2C"/>
 									<listOptionValue builtIn="false" value="USE_INA226"/>
-									<listOptionValue builtIn="false" value="USE_NRF24_"/>
+									<listOptionValue builtIn="false" value="TARGET_IS_DUSTDEVIL_RA0"/>
+									<listOptionValue builtIn="false" value="UART_BUFFERED"/>
 									<listOptionValue builtIn="false" value="STELLARIS"/>
+									<listOptionValue builtIn="false" value="USE_NRF24_"/>
 								</option>
 								<option id="org.eclipse.cdt.cross.arm.gnu.cpp.compiler.option.include.paths.275540537" name="Include paths (-I)" superClass="org.eclipse.cdt.cross.arm.gnu.cpp.compiler.option.include.paths" valueType="includePath">
+									<listOptionValue builtIn="false" value="/home/joao/StellarisWare/driverlib"/>
+									<listOptionValue builtIn="false" value="/home/joao/StellarisWare"/>
+									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/${ProjName}/libraries}&quot;"/>
 									<listOptionValue builtIn="false" value="/mnt/D/cenas_ARM/stellaris/driverlib"/>
 									<listOptionValue builtIn="false" value="/mnt/D/cenas_ARM/stellaris"/>
-									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/${ProjName}/libraries}&quot;"/>
 								</option>
 								<option id="org.eclipse.cdt.cross.arm.gnu.cpp.compiler.option.optimization.functionsections.828913879" name="Function sections (-ffunction-sections)" superClass="org.eclipse.cdt.cross.arm.gnu.cpp.compiler.option.optimization.functionsections" value="true" valueType="boolean"/>
 								<option id="org.eclipse.cdt.cross.arm.gnu.cpp.compiler.option.optimization.datasections.1102991322" name="Data sections (-fdata-sections)" superClass="org.eclipse.cdt.cross.arm.gnu.cpp.compiler.option.optimization.datasections" value="true" valueType="boolean"/>
 								<option id="org.eclipse.cdt.cross.arm.gnu.cpp.compiler.option.misc.std.689133736" name="Language Standard" superClass="org.eclipse.cdt.cross.arm.gnu.cpp.compiler.option.misc.std" value="org.eclipse.cdt.cross.arm.gnu.cpp.compiler.option.misc.std.default" valueType="enumerated"/>
+								<option id="org.eclipse.cdt.cross.arm.gnu.cpp.compiler.option.optimization.packstruct.1257218339" superClass="org.eclipse.cdt.cross.arm.gnu.cpp.compiler.option.optimization.packstruct" value="true" valueType="boolean"/>
 								<inputType id="org.eclipse.cdt.cross.arm.gnu.summon.linux.cpp.compiler.base.input.545624221" superClass="org.eclipse.cdt.cross.arm.gnu.summon.linux.cpp.compiler.base.input"/>
 							</tool>
 							<tool id="org.eclipse.cdt.cross.arm.gnu.summon.linux.elf.c.linker.release.638768373" name="ARM Summon Linux GCC C Linker" superClass="org.eclipse.cdt.cross.arm.gnu.summon.linux.elf.c.linker.release"/>
 							<tool id="org.eclipse.cdt.cross.arm.gnu.summon.linux.elf.cpp.linker.release.1771007966" name="ARM Summon Linux GCC C++ Linker" superClass="org.eclipse.cdt.cross.arm.gnu.summon.linux.elf.cpp.linker.release">
 								<option id="org.eclipse.cdt.cross.arm.gnu.cpp.link.option.paths.34005923" name="Library search path (-L)" superClass="org.eclipse.cdt.cross.arm.gnu.cpp.link.option.paths" valueType="libPaths">
-									<listOptionValue builtIn="false" value="/mnt/D/cenas_ARM/stellaris/driverlib/gcc-cm3"/>
+									<listOptionValue builtIn="false" value="${STELLARISWARE}/driverlib/gcc-cm3"/>
 								</option>
 								<option id="org.eclipse.cdt.cross.arm.gnu.cpp.link.option.libs.1768019446" name="Libraries (-l)" superClass="org.eclipse.cdt.cross.arm.gnu.cpp.link.option.libs" valueType="libs">
 									<listOptionValue builtIn="false" srcPrefixMapping="" srcRootPath="" value="driver-cm3"/>
 								</option>
-								<option id="org.eclipse.cdt.cross.arm.gnu.cpp.link.option.scriptfile.542178514" name="Script file (-T)" superClass="org.eclipse.cdt.cross.arm.gnu.cpp.link.option.scriptfile" value="/home/bgouveia/workspace/rf24-stellaris/lm3s1776-withHeap.ld" valueType="string"/>
+								<option id="org.eclipse.cdt.cross.arm.gnu.cpp.link.option.scriptfile.542178514" name="Script file (-T)" superClass="org.eclipse.cdt.cross.arm.gnu.cpp.link.option.scriptfile" value="/home/joao/workspace2/ROSpberryCar_Stellaris_MCU/lm3s1776-withHeap.ld" valueType="string"/>
 								<option id="org.eclipse.cdt.cross.arm.gnu.cpp.link.option.nostart.2065952480" name="Do not use standard start files (-nostartfiles)" superClass="org.eclipse.cdt.cross.arm.gnu.cpp.link.option.nostart" value="true" valueType="boolean"/>
 								<option id="org.eclipse.cdt.cross.arm.gnu.cpp.link.option.gcsections.2120314874" name="Remove unused sections (-Xlinker --gc-sections)" superClass="org.eclipse.cdt.cross.arm.gnu.cpp.link.option.gcsections" value="true" valueType="boolean"/>
 								<inputType id="org.eclipse.cdt.cross.arm.gnu.cpp.linker.input.886943421" superClass="org.eclipse.cdt.cross.arm.gnu.cpp.linker.input">

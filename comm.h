@@ -22,6 +22,7 @@ typedef struct ROSCASDataFromRASPI_
 	int8_t v_linear;
 	int8_t v_angular;
 	uint8_t cmd;
+	uint8_t useless;
 }ROSCASDataFromRASPI;
 
 typedef struct ROSCASDataToRASPI_
@@ -31,6 +32,7 @@ typedef struct ROSCASDataToRASPI_
 	uint8_t battery_voltage;
 	uint8_t battery_current;
 	uint8_t cmd_back;
+	uint8_t useless;
 }ROSCASDataToRASPI;
 
 typedef enum
