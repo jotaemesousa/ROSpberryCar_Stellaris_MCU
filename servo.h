@@ -16,7 +16,7 @@
 
 void servo_init();
 void servo_setPosition(int position);
-
+void esc_setPosition(int position);
 
 
 #endif /* SERVO_H_ */
