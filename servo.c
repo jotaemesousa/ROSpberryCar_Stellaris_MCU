@@ -37,14 +37,3 @@ void servo_setPosition(int position)
 			setSoftPWMDuty(2, value);
 		}
 }
-
-void esc_setPosition(int position)
-{
-	unsigned long int value;
-
-			if (position >= 0 && position <= 180)
-			{
-				value =  BASE + (position * (END-BASE)/180);
-				setSoftPWMDuty(3, value);
-			}
-}

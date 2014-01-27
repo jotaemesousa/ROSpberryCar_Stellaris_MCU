@@ -23,6 +23,7 @@ extern "C" {
 #include "servo.h"
 #include "INA226.h"
 #include "Encoder.h"
+#include "soft_pwm.h"
 
 // use sensors
 #define USE_I2C
@@ -143,21 +144,34 @@ int main(void)
 
 
 #ifdef DEBUG
-	UARTprintf("Setting up Servo ... \n");
-#endif
-	servo_init();
-	servo_setPosition(90);
-
-#ifdef DEBUG
 	UARTprintf("Setting up PWM ... \n");
 #endif
 	configurePWM();
 	configureGPIO();
+#ifdef DEBUG
+	UARTprintf("Done\n");
+#endif
+
+#ifdef DEBUG
+	UARTprintf("Setting up Servo ... \n");
+#endif
+	servo_init();
+	servo_setPosition(90);
+#ifdef DEBUG
+	UARTprintf("Done\n");
+#endif
 
 	UARTprintf("Starting QEI...");
 	encoder_init();
 	UARTprintf("done\n");
 
+#ifdef DEBUG
+	UARTprintf("Starting up PWM ... \n");
+#endif
+	enablePWM();
+#ifdef DEBUG
+	UARTprintf("Done\n");
+#endif
 
 #ifdef DEBUG
     UARTprintf("SysCtlPeripheralEnable(SYSCTL_PERIPH_I2C0)\n");
@@ -355,27 +369,9 @@ void updateADCValues(unsigned long int * values)
 
 void configurePWM(void)
 {
-	SysCtlPeripheralEnable(SYSCTL_PERIPH_PWM);
-	SysCtlPeripheralEnable(SYSCTL_PERIPH_GPIOA);
-	SysCtlPeripheralEnable(SYSCTL_PERIPH_GPIOC);
-	GPIOPinTypePWM(GPIO_PORTA_BASE, GPIO_PIN_6 | GPIO_PIN_7);
-	GPIOPinTypePWM(GPIO_PORTC_BASE, GPIO_PIN_4 | GPIO_PIN_6);
-
-	PWMGenConfigure(PWM_BASE,PWM_GEN_2,PWM_GEN_MODE_UP_DOWN|PWM_GEN_MODE_NO_SYNC);
-	PWMGenConfigure(PWM_BASE,PWM_GEN_3,PWM_GEN_MODE_UP_DOWN|PWM_GEN_MODE_NO_SYNC);
-
-	PWMGenPeriodSet(PWM_BASE, PWM_GEN_2, MAX_PWM_DRIVE);		// Drive PWM
-	PWMGenPeriodSet(PWM_BASE, PWM_GEN_3, MAX_PWM_DRIVE);		// Drive PWM
-
-	PWMOutputState(PWM_BASE, (PWM_OUT_4_BIT | PWM_OUT_5_BIT|PWM_OUT_7_BIT | PWM_OUT_6_BIT), true);
-	PWMGenEnable(PWM_BASE, PWM_GEN_2);
-	PWMGenEnable(PWM_BASE, PWM_GEN_3);
-
-	PWMPulseWidthSet(PWM_BASE, PWM_OUT_4, 0);
-	PWMPulseWidthSet(PWM_BASE, PWM_OUT_5, 0);
-	PWMPulseWidthSet(PWM_BASE, PWM_OUT_6, 0);
-	PWMPulseWidthSet(PWM_BASE, PWM_OUT_7, 0);
-
+	initSoftPWM(500,40);
+	setPWMGenFreq(3,500);
+	setPWMGenFreq(4,500);
 }
 
 void configureGPIO(void)
