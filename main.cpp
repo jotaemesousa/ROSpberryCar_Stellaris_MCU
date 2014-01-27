@@ -7,7 +7,6 @@ extern "C" {
 #include <driverlib/adc.h>
 #include "driverlib/interrupt.h"
 #include "driverlib/i2c.h"
-#include "driverlib/pwm.h"
 #include "driverlib/rom.h"
 #include "driverlib/rom_map.h"
 #include "driverlib/sysctl.h"
@@ -174,31 +173,31 @@ int main(void)
 #endif
 
 #ifdef DEBUG
-    UARTprintf("SysCtlPeripheralEnable(SYSCTL_PERIPH_I2C0)\n");
+	UARTprintf("SysCtlPeripheralEnable(SYSCTL_PERIPH_I2C0)\n");
 #endif
 
 #ifdef USE_I2C
-    //I2C
-    SysCtlPeripheralEnable(SYSCTL_PERIPH_I2C0);
-    SysCtlPeripheralEnable(SYSCTL_PERIPH_GPIOB);
-    GPIOPinTypeI2C(GPIO_PORTB_BASE,GPIO_PIN_2 | GPIO_PIN_3);
-    I2CMasterInitExpClk(I2C0_MASTER_BASE,SysCtlClockGet(),false);  //false = 100khz , true = 400khz
-    I2CMasterTimeoutSet(I2C0_MASTER_BASE, 1000);
+	//I2C
+	SysCtlPeripheralEnable(SYSCTL_PERIPH_I2C0);
+	SysCtlPeripheralEnable(SYSCTL_PERIPH_GPIOB);
+	GPIOPinTypeI2C(GPIO_PORTB_BASE,GPIO_PIN_2 | GPIO_PIN_3);
+	I2CMasterInitExpClk(I2C0_MASTER_BASE,SysCtlClockGet(),false);  //false = 100khz , true = 400khz
+	I2CMasterTimeoutSet(I2C0_MASTER_BASE, 1000);
 #ifdef DEBUG
-    UARTprintf("I2C configured\n");
+	UARTprintf("I2C configured\n");
 #endif
 #endif
 
 #ifdef USE_INA226
-    INA226 power_meter = INA226(0x45);
-    power_meter.set_sample_average(4);
-    power_meter.set_calibration_value(445);
-    power_meter.set_bus_voltage_limit(7.0);
-    power_meter.set_mask_enable_register(BUS_UNDER_LIMIT);
+	INA226 power_meter = INA226(0x45);
+	power_meter.set_sample_average(4);
+	power_meter.set_calibration_value(445);
+	power_meter.set_bus_voltage_limit(7.0);
+	power_meter.set_mask_enable_register(BUS_UNDER_LIMIT);
 #endif
 
 #ifdef USE_NRF24
-    RF24 radio = RF24();
+	RF24 radio = RF24();
 
 	// Radio pipe addresses for the 2 nodes to communicate.
 	const uint64_t pipes[3] = { 0xF0F0F0F0E1LL, 0xF0F0F0F0D2LL, 0xF0F0F0F0C3LL};
@@ -310,22 +309,22 @@ int main(void)
 void setupADC(void)
 {
 
-//	//Enable ADC0
-//	SysCtlPeripheralEnable(SYSCTL_PERIPH_GPIOE);
-//	SysCtlPeripheralEnable(SYSCTL_PERIPH_ADC0);
-//	GPIOPinTypeADC(GPIO_PORTE_BASE, GPIO_PIN_3 | GPIO_PIN_2);
-//
-//    //
-//    // Enable the first sample sequencer to capture the value of channel 0 when
-//    // the processor trigger occurs.
-//    //
-//	ADCSequenceDisable(ADC_BASE, 0);
-//	ADCSequenceEnable(ADC_BASE, 0);
-//	ADCSequenceConfigure(ADC_BASE, 0, ADC_TRIGGER_PROCESSOR, 0);
-//	ADCSequenceStepConfigure(ADC_BASE, 0, BATTERY_ADC, ADC_CTL_IE | ADC_CTL_END | ADC_CTL_CH1 );
-//	ADCSoftwareOversampleConfigure(ADC_BASE, 0, 4);
-//
-//	ADCIntClear(ADC_BASE, 0);
+	//	//Enable ADC0
+	//	SysCtlPeripheralEnable(SYSCTL_PERIPH_GPIOE);
+	//	SysCtlPeripheralEnable(SYSCTL_PERIPH_ADC0);
+	//	GPIOPinTypeADC(GPIO_PORTE_BASE, GPIO_PIN_3 | GPIO_PIN_2);
+	//
+	//    //
+	//    // Enable the first sample sequencer to capture the value of channel 0 when
+	//    // the processor trigger occurs.
+	//    //
+	//	ADCSequenceDisable(ADC_BASE, 0);
+	//	ADCSequenceEnable(ADC_BASE, 0);
+	//	ADCSequenceConfigure(ADC_BASE, 0, ADC_TRIGGER_PROCESSOR, 0);
+	//	ADCSequenceStepConfigure(ADC_BASE, 0, BATTERY_ADC, ADC_CTL_IE | ADC_CTL_END | ADC_CTL_CH1 );
+	//	ADCSoftwareOversampleConfigure(ADC_BASE, 0, 4);
+	//
+	//	ADCIntClear(ADC_BASE, 0);
 
 }
 
@@ -391,30 +390,59 @@ void drive_pwm(int pwm, bool brake)
 	if(!brake)
 	{
 		//write pwm vales
-		if(pwm < 0 && pwm > -128)
+		if(pwm == 0)
 		{
-			PWMPulseWidthSet(PWM_BASE, PWM_OUT_4, 0);
-			PWMPulseWidthSet(PWM_BASE, PWM_OUT_5, (PWMGenPeriodGet(PWM_BASE, PWM_GEN_2)-5) * -pwm / 128);
+			setSoftPWMDuty(4,0);
+			setSoftPWMDuty(5,0);
 		}
-		else if(pwm >= 0 && pwm < 128)
+		else if(pwm > 0 && pwm < 127)
 		{
-			PWMPulseWidthSet(PWM_BASE, PWM_OUT_5, 0);
-			PWMPulseWidthSet(PWM_BASE, PWM_OUT_4, (PWMGenPeriodGet(PWM_BASE, PWM_GEN_2)-5) * pwm / 128);
+			setSoftPWMDuty(4,getSoftPWMmaxDuty(3) * pwm / 127);
+			setSoftPWMDuty(5,0);
 		}
-		else if(pwm >= 128)
+		else if (pwm >=127)
 		{
-			PWMPulseWidthSet(PWM_BASE, PWM_OUT_5, 0);
-			PWMPulseWidthSet(PWM_BASE, PWM_OUT_4, MAX_PWM_DRIVE - 5);
+			setSoftPWMDuty(4,getSoftPWMmaxDuty(3));
+			setSoftPWMDuty(5,0);
 		}
-		else if(pwm <= -128)
+		else if (pwm > -127)
 		{
-			PWMPulseWidthSet(PWM_BASE, PWM_OUT_5, MAX_PWM_DRIVE - 5);
-			PWMPulseWidthSet(PWM_BASE, PWM_OUT_4, 0);
+			setSoftPWMDuty(5,getSoftPWMmaxDuty(3) * -pwm / 127);
+			setSoftPWMDuty(4,0);
+		}
+		else
+		{
+			setSoftPWMDuty(5,getSoftPWMmaxDuty(3));
+			setSoftPWMDuty(4,0);
 		}
 	}
 	else
 	{
-		//TODO : slow decay
+		if(pwm == 0)
+		{
+			setSoftPWMDuty(4,getSoftPWMmaxDuty(3));
+			setSoftPWMDuty(5,getSoftPWMmaxDuty(3));
+		}
+		else if(pwm > 0 && pwm < 127)
+		{
+			setSoftPWMDuty(4,getSoftPWMmaxDuty(3));
+			setSoftPWMDuty(5,getSoftPWMmaxDuty(3) * (127 - pwm) / 127);
+		}
+		else if (pwm >=127)
+		{
+			setSoftPWMDuty(4,getSoftPWMmaxDuty(3));
+			setSoftPWMDuty(5,0);
+		}
+		else if (pwm > -127)
+		{
+			setSoftPWMDuty(4,getSoftPWMmaxDuty(3) * (127 - pwm) / 127);
+			setSoftPWMDuty(5,getSoftPWMmaxDuty(3));
+		}
+		else
+		{
+			setSoftPWMDuty(5,getSoftPWMmaxDuty(3));
+			setSoftPWMDuty(4,0);
+		}
 	}
 }
 
@@ -452,19 +480,19 @@ void updateLights(RC_remote &in)
 	switch (front_state)
 	{
 	case 0:
-		PWMPulseWidthSet(PWM_BASE, PWM_OUT_6, 0);
+		setSoftPWMDuty(6,0);
 		break;
 
 	case 1:
-		PWMPulseWidthSet(PWM_BASE, PWM_OUT_6, PWMGenPeriodGet(PWM_BASE, PWM_GEN_3) / 6);
+		setSoftPWMDuty(6,getSoftPWMmaxDuty(4) / 6);
 		break;
 
 	case 2:
-		PWMPulseWidthSet(PWM_BASE, PWM_OUT_6, PWMGenPeriodGet(PWM_BASE, PWM_GEN_3) / 2);
+		setSoftPWMDuty(6,getSoftPWMmaxDuty(4) / 3);
 		break;
 
 	case 3:
-		PWMPulseWidthSet(PWM_BASE, PWM_OUT_6, PWMGenPeriodGet(PWM_BASE, PWM_GEN_3)-5);
+		setSoftPWMDuty(6,getSoftPWMmaxDuty(4));
 		break;
 	}
 
@@ -473,11 +501,11 @@ void updateLights(RC_remote &in)
 	case 0:
 		if((in.buttons & R1_BUTTON) == R1_BUTTON)
 		{
-			PWMPulseWidthSet(PWM_BASE, PWM_OUT_7, PWMGenPeriodGet(PWM_BASE, PWM_GEN_3) - 5);
+			setSoftPWMDuty(7,getSoftPWMmaxDuty(4));
 		}
 		else
 		{
-			PWMPulseWidthSet(PWM_BASE, PWM_OUT_7, 0);
+			setSoftPWMDuty(7,0);
 		}
 		break;
 	case 1:
@@ -486,11 +514,11 @@ void updateLights(RC_remote &in)
 
 		if((in.buttons & R1_BUTTON) == R1_BUTTON)
 		{
-			PWMPulseWidthSet(PWM_BASE, PWM_OUT_7, PWMGenPeriodGet(PWM_BASE, PWM_GEN_3) - 5);
+			setSoftPWMDuty(6,getSoftPWMmaxDuty(4));
 		}
 		else
 		{
-			PWMPulseWidthSet(PWM_BASE, PWM_OUT_7, PWMGenPeriodGet(PWM_BASE, PWM_GEN_3) / 3);
+			setSoftPWMDuty(6,getSoftPWMmaxDuty(4) / 3);
 		}
 		break;
 

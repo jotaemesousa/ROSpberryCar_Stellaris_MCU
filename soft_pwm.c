@@ -214,6 +214,18 @@ int32_t getSoftPWMPeriod(uint8_t generator)
 	}
 }
 
+int32_t getSoftPWMmaxDuty(uint8_t generator)
+{
+	if(config_done[generator - 1])
+	{
+		return max_count[generator - 1] - 1;
+	}
+	else
+	{
+		return -1;
+	}
+}
+
 void Timer0IntHandler(void)
 {
 	HWREG(TIMER0_BASE + TIMER_O_ICR) = TIMER_TIMA_TIMEOUT;
