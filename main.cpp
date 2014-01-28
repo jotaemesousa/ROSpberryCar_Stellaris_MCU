@@ -7,7 +7,7 @@ extern "C" {
 #include <driverlib/adc.h>
 #include <driverlib/interrupt.h>
 #include <driverlib/i2c.h>
-#include <driverlib/pwm.h>
+//#include <driverlib/pwm.h>
 #include <driverlib/rom.h>
 #include <driverlib/rom_map.h>
 #include <driverlib/sysctl.h>
@@ -24,11 +24,11 @@ extern "C" {
 #include "Utilities/servo.h"
 #include "Utilities/INA226.h"
 #include "Utilities/Encoder.h"
-
+#include "soft_pwm.h"
 
 // use sensors
-#define USE_I2C
-#define USE_INA226
+//#define USE_I2C
+//#define USE_INA226
 #define USE_NRF24
 
 #define SYSTICKS_PER_SECOND     1000
@@ -128,43 +128,33 @@ int main(void)
 	RC_Param car_param;
 
 #ifdef DEBUG
-	UARTprintf("Setting up Servo ... \n");
+	UARTprintf("Setting up Servo ...");
 #endif
-	servo_init();
-	servo_setPosition(90);
-
+//	servo_init();
+//	servo_setPosition(90);
 #ifdef DEBUG
-	UARTprintf("Setting up PWM ... \n");
+	UARTprintf("Done \n");
 #endif
-	configurePWM();
+#ifdef DEBUG
+	UARTprintf("Setting up PWM ... ");
+#endif
+//	configurePWM();
 	configureGPIO();
-
+#ifdef DEBUG
+	UARTprintf("Done \n");
+#endif
+#ifdef DEBUG
 	UARTprintf("Starting QEI...");
-	encoder_init();
-	UARTprintf("done\n");
-
-
-#ifdef DEBUG
-	UARTprintf("SysCtlPeripheralEnable(SYSCTL_PERIPH_I2C0)\n");
 #endif
-
+	//encoder_init();
 #ifdef DEBUG
-	UARTprintf("Setting up PID\n");
-#endif
-	velocity_pid.setGains(5.0,2.5,0.0);
-	velocity_pid.setSampleTime(0.050);
-	velocity_pid.setMaxAccumulatedError(50);
-	velocity_pid.setFilter(0.20);
-	velocity_pid.setMaxOutput(50);
-	velocity_pid.setMinOutput(-50);
-	velocity_pid.initSensor(0);
-	velocity_pid.setNewReference(0,1);
-
-#ifdef DEBUG
-	UARTprintf("done\n");
+	UARTprintf("Done \n");
 #endif
 
 #ifdef USE_I2C
+#ifdef DEBUG
+	UARTprintf("Starting i2c ...");
+#endif
 	//I2C
 	SysCtlPeripheralEnable(SYSCTL_PERIPH_I2C0);
 	SysCtlPeripheralEnable(SYSCTL_PERIPH_GPIOB);
@@ -178,13 +168,22 @@ int main(void)
 
 #ifdef USE_I2C
 #ifdef USE_INA226
+#ifdef DEBUG
+	UARTprintf("setting up ina226 ...");
+#endif
 	INA226 power_meter = INA226(0x45);
 	power_meter.set_sample_average(4);
 	power_meter.set_calibration_value(445);
 	power_meter.set_bus_voltage_limit(7.0);
 	power_meter.set_mask_enable_register(BUS_UNDER_LIMIT);
+#ifdef DEBUG
+	UARTprintf("Done \n");
 #endif
 #endif
+#endif
+
+
+
 
 #ifdef USE_NRF24
 	RF24 radio = RF24();
@@ -321,24 +320,24 @@ int main(void)
 
 void configurePWM(void)
 {
-	MAP_SysCtlPeripheralEnable(SYSCTL_PERIPH_PWM);
-	MAP_SysCtlPeripheralEnable(SYSCTL_PERIPH_GPIOA);
-	MAP_SysCtlPeripheralEnable(SYSCTL_PERIPH_GPIOC);
-	MAP_GPIOPinTypePWM(GPIO_PORTA_BASE, GPIO_PIN_6 | GPIO_PIN_7);
-
-	MAP_PWMGenConfigure(PWM_BASE,PWM_GEN_2,PWM_GEN_MODE_DOWN|PWM_GEN_MODE_NO_SYNC);
-	MAP_PWMGenConfigure(PWM_BASE,PWM_GEN_3,PWM_GEN_MODE_DOWN|PWM_GEN_MODE_NO_SYNC);
-
-	MAP_PWMGenPeriodSet(PWM_BASE, PWM_GEN_2, MAX_PWM_DRIVE);		// Drive PWM
-	MAP_PWMGenPeriodSet(PWM_BASE, PWM_GEN_3, MAX_PWM_DRIVE);		// Drive PWM
-
-	MAP_PWMGenEnable(PWM_BASE, PWM_GEN_2);
-	MAP_PWMGenEnable(PWM_BASE, PWM_GEN_3);
-
-	MAP_PWMOutputState(PWM_BASE, PWM_OUT_4_BIT | PWM_OUT_5_BIT, false);
-
-	MAP_GPIOPinTypeGPIOOutput(GPIO_PORTC_BASE, GPIO_PIN_6);
-	MAP_GPIOPinTypeGPIOOutput(GPIO_PORTC_BASE, GPIO_PIN_4);
+//	MAP_SysCtlPeripheralEnable(SYSCTL_PERIPH_PWM);
+//	MAP_SysCtlPeripheralEnable(SYSCTL_PERIPH_GPIOA);
+//	MAP_SysCtlPeripheralEnable(SYSCTL_PERIPH_GPIOC);
+//	MAP_GPIOPinTypePWM(GPIO_PORTA_BASE, GPIO_PIN_6 | GPIO_PIN_7);
+//
+//	MAP_PWMGenConfigure(PWM_BASE,PWM_GEN_2,PWM_GEN_MODE_DOWN|PWM_GEN_MODE_NO_SYNC);
+//	MAP_PWMGenConfigure(PWM_BASE,PWM_GEN_3,PWM_GEN_MODE_DOWN|PWM_GEN_MODE_NO_SYNC);
+//
+//	MAP_PWMGenPeriodSet(PWM_BASE, PWM_GEN_2, MAX_PWM_DRIVE);		// Drive PWM
+//	MAP_PWMGenPeriodSet(PWM_BASE, PWM_GEN_3, MAX_PWM_DRIVE);		// Drive PWM
+//
+//	MAP_PWMGenEnable(PWM_BASE, PWM_GEN_2);
+//	MAP_PWMGenEnable(PWM_BASE, PWM_GEN_3);
+//
+//	MAP_PWMOutputState(PWM_BASE, PWM_OUT_4_BIT | PWM_OUT_5_BIT, false);
+//
+//	MAP_GPIOPinTypeGPIOOutput(GPIO_PORTC_BASE, GPIO_PIN_6);
+//	MAP_GPIOPinTypeGPIOOutput(GPIO_PORTC_BASE, GPIO_PIN_4);
 
 }
 
@@ -356,74 +355,74 @@ void configureGPIO(void)
 
 void drive_pwm(int pwm, bool brake)
 {
-	if(!brake)
-	{
-		//write pwm vales
-		if (pwm==0)
-		{
-			MAP_PWMOutputState(PWM_BASE, PWM_OUT_4_BIT | PWM_OUT_5_BIT, false);
-		}
-		else if(pwm > 0 && pwm < 127)
-		{
-			MAP_PWMOutputState(PWM_BASE, PWM_OUT_5_BIT, false);
-			MAP_PWMOutputState(PWM_BASE, PWM_OUT_4_BIT, true);
-			MAP_PWMPulseWidthSet(PWM_BASE, PWM_OUT_4, MAP_PWMGenPeriodGet(PWM_BASE, PWM_GEN_2) * pwm / 127);
-
-		}
-		else if (pwm >=127)
-		{
-			MAP_PWMOutputState(PWM_BASE, PWM_OUT_5_BIT, false);
-			MAP_PWMOutputState(PWM_BASE, PWM_OUT_4_BIT, true);
-			MAP_PWMPulseWidthSet(PWM_BASE, PWM_OUT_4, MAP_PWMGenPeriodGet(PWM_BASE, PWM_GEN_2));
-		}
-		else if ( pwm > -127)
-		{
-			MAP_PWMOutputState(PWM_BASE, PWM_OUT_4_BIT, false);
-			MAP_PWMOutputState(PWM_BASE, PWM_OUT_5_BIT, true);
-			MAP_PWMPulseWidthSet(PWM_BASE, PWM_OUT_5, MAP_PWMGenPeriodGet(PWM_BASE, PWM_GEN_2) * -pwm / 127);
-		}
-		else
-		{
-			MAP_PWMOutputState(PWM_BASE, PWM_OUT_4_BIT, false);
-			MAP_PWMOutputState(PWM_BASE, PWM_OUT_5_BIT, true);
-			MAP_PWMPulseWidthSet(PWM_BASE, PWM_OUT_5, MAP_PWMGenPeriodGet(PWM_BASE, PWM_GEN_2));
-		}
-	}
-	else
-	{
-		//write pwm vales
-		if (pwm==0)
-		{
-			MAP_PWMOutputState(PWM_BASE, PWM_OUT_4_BIT | PWM_OUT_5_BIT, true);
-			MAP_PWMPulseWidthSet(PWM_BASE, PWM_OUT_4, MAP_PWMGenPeriodGet(PWM_BASE, PWM_GEN_2));
-			MAP_PWMPulseWidthSet(PWM_BASE, PWM_OUT_5, MAP_PWMGenPeriodGet(PWM_BASE, PWM_GEN_2));
-		}
-		else if(pwm > 0 && pwm < 127)
-		{
-			MAP_PWMOutputState(PWM_BASE, PWM_OUT_4_BIT | PWM_OUT_5_BIT, true);
-			MAP_PWMPulseWidthSet(PWM_BASE, PWM_OUT_5, MAP_PWMGenPeriodGet(PWM_BASE, PWM_GEN_2) * (127 - pwm) / 127);
-			MAP_PWMPulseWidthSet(PWM_BASE, PWM_OUT_4, MAP_PWMGenPeriodGet(PWM_BASE, PWM_GEN_2));
-
-		}
-		else if (pwm >= 127)
-		{
-			MAP_PWMOutputState(PWM_BASE, PWM_OUT_4_BIT, true);
-			MAP_PWMOutputState(PWM_BASE, PWM_OUT_5_BIT, false);
-			MAP_PWMPulseWidthSet(PWM_BASE, PWM_OUT_4, MAP_PWMGenPeriodGet(PWM_BASE, PWM_GEN_2));
-		}
-		else if ( pwm > -127)
-		{
-			MAP_PWMOutputState(PWM_BASE, PWM_OUT_4_BIT | PWM_OUT_5_BIT, true);
-			MAP_PWMPulseWidthSet(PWM_BASE, PWM_OUT_4, MAP_PWMGenPeriodGet(PWM_BASE, PWM_GEN_2) * (127 + pwm) / 127);
-			MAP_PWMPulseWidthSet(PWM_BASE, PWM_OUT_5, MAP_PWMGenPeriodGet(PWM_BASE, PWM_GEN_2));
-		}
-		else
-		{
-			MAP_PWMOutputState(PWM_BASE, PWM_OUT_5_BIT, true);
-			MAP_PWMOutputState(PWM_BASE, PWM_OUT_4_BIT, false);
-			MAP_PWMPulseWidthSet(PWM_BASE, PWM_OUT_5, MAP_PWMGenPeriodGet(PWM_BASE, PWM_GEN_2));
-		}
-	}
+//	if(!brake)
+//	{
+//		//write pwm vales
+//		if (pwm==0)
+//		{
+//			MAP_PWMOutputState(PWM_BASE, PWM_OUT_4_BIT | PWM_OUT_5_BIT, false);
+//		}
+//		else if(pwm > 0 && pwm < 127)
+//		{
+//			MAP_PWMOutputState(PWM_BASE, PWM_OUT_5_BIT, false);
+//			MAP_PWMOutputState(PWM_BASE, PWM_OUT_4_BIT, true);
+//			MAP_PWMPulseWidthSet(PWM_BASE, PWM_OUT_4, MAP_PWMGenPeriodGet(PWM_BASE, PWM_GEN_2) * pwm / 127);
+//
+//		}
+//		else if (pwm >=127)
+//		{
+//			MAP_PWMOutputState(PWM_BASE, PWM_OUT_5_BIT, false);
+//			MAP_PWMOutputState(PWM_BASE, PWM_OUT_4_BIT, true);
+//			MAP_PWMPulseWidthSet(PWM_BASE, PWM_OUT_4, MAP_PWMGenPeriodGet(PWM_BASE, PWM_GEN_2));
+//		}
+//		else if ( pwm > -127)
+//		{
+//			MAP_PWMOutputState(PWM_BASE, PWM_OUT_4_BIT, false);
+//			MAP_PWMOutputState(PWM_BASE, PWM_OUT_5_BIT, true);
+//			MAP_PWMPulseWidthSet(PWM_BASE, PWM_OUT_5, MAP_PWMGenPeriodGet(PWM_BASE, PWM_GEN_2) * -pwm / 127);
+//		}
+//		else
+//		{
+//			MAP_PWMOutputState(PWM_BASE, PWM_OUT_4_BIT, false);
+//			MAP_PWMOutputState(PWM_BASE, PWM_OUT_5_BIT, true);
+//			MAP_PWMPulseWidthSet(PWM_BASE, PWM_OUT_5, MAP_PWMGenPeriodGet(PWM_BASE, PWM_GEN_2));
+//		}
+//	}
+//	else
+//	{
+//		//write pwm vales
+//		if (pwm==0)
+//		{
+//			MAP_PWMOutputState(PWM_BASE, PWM_OUT_4_BIT | PWM_OUT_5_BIT, true);
+//			MAP_PWMPulseWidthSet(PWM_BASE, PWM_OUT_4, MAP_PWMGenPeriodGet(PWM_BASE, PWM_GEN_2));
+//			MAP_PWMPulseWidthSet(PWM_BASE, PWM_OUT_5, MAP_PWMGenPeriodGet(PWM_BASE, PWM_GEN_2));
+//		}
+//		else if(pwm > 0 && pwm < 127)
+//		{
+//			MAP_PWMOutputState(PWM_BASE, PWM_OUT_4_BIT | PWM_OUT_5_BIT, true);
+//			MAP_PWMPulseWidthSet(PWM_BASE, PWM_OUT_5, MAP_PWMGenPeriodGet(PWM_BASE, PWM_GEN_2) * (127 - pwm) / 127);
+//			MAP_PWMPulseWidthSet(PWM_BASE, PWM_OUT_4, MAP_PWMGenPeriodGet(PWM_BASE, PWM_GEN_2));
+//
+//		}
+//		else if (pwm >= 127)
+//		{
+//			MAP_PWMOutputState(PWM_BASE, PWM_OUT_4_BIT, true);
+//			MAP_PWMOutputState(PWM_BASE, PWM_OUT_5_BIT, false);
+//			MAP_PWMPulseWidthSet(PWM_BASE, PWM_OUT_4, MAP_PWMGenPeriodGet(PWM_BASE, PWM_GEN_2));
+//		}
+//		else if ( pwm > -127)
+//		{
+//			MAP_PWMOutputState(PWM_BASE, PWM_OUT_4_BIT | PWM_OUT_5_BIT, true);
+//			MAP_PWMPulseWidthSet(PWM_BASE, PWM_OUT_4, MAP_PWMGenPeriodGet(PWM_BASE, PWM_GEN_2) * (127 + pwm) / 127);
+//			MAP_PWMPulseWidthSet(PWM_BASE, PWM_OUT_5, MAP_PWMGenPeriodGet(PWM_BASE, PWM_GEN_2));
+//		}
+//		else
+//		{
+//			MAP_PWMOutputState(PWM_BASE, PWM_OUT_5_BIT, true);
+//			MAP_PWMOutputState(PWM_BASE, PWM_OUT_4_BIT, false);
+//			MAP_PWMPulseWidthSet(PWM_BASE, PWM_OUT_5, MAP_PWMGenPeriodGet(PWM_BASE, PWM_GEN_2));
+//		}
+//	}
 }
 
 void updateLights(RC_remote &in)
@@ -457,52 +456,52 @@ void updateLights(RC_remote &in)
 		}
 	}
 
-	switch (front_state)
-	{
-	case 0:
-		PWMPulseWidthSet(PWM_BASE, PWM_OUT_6, 0);
-		break;
-
-	case 1:
-		PWMPulseWidthSet(PWM_BASE, PWM_OUT_6, PWMGenPeriodGet(PWM_BASE, PWM_GEN_3) / 6);
-		break;
-
-	case 2:
-		PWMPulseWidthSet(PWM_BASE, PWM_OUT_6, PWMGenPeriodGet(PWM_BASE, PWM_GEN_3) / 2);
-		break;
-
-	case 3:
-		PWMPulseWidthSet(PWM_BASE, PWM_OUT_6, PWMGenPeriodGet(PWM_BASE, PWM_GEN_3)-5);
-		break;
-	}
-
-	switch(tail_state)
-	{
-	case 0:
-		if((in.buttons & R1_BUTTON) == R1_BUTTON)
-		{
-			PWMPulseWidthSet(PWM_BASE, PWM_OUT_7, PWMGenPeriodGet(PWM_BASE, PWM_GEN_3) - 5);
-		}
-		else
-		{
-			PWMPulseWidthSet(PWM_BASE, PWM_OUT_7, 0);
-		}
-		break;
-	case 1:
-	case 2:
-	case 3:
-
-		if((in.buttons & R1_BUTTON) == R1_BUTTON)
-		{
-			PWMPulseWidthSet(PWM_BASE, PWM_OUT_7, PWMGenPeriodGet(PWM_BASE, PWM_GEN_3) - 5);
-		}
-		else
-		{
-			PWMPulseWidthSet(PWM_BASE, PWM_OUT_7, PWMGenPeriodGet(PWM_BASE, PWM_GEN_3) / 3);
-		}
-		break;
-
-	}
+//	switch (front_state)
+//	{
+//	case 0:
+//		PWMPulseWidthSet(PWM_BASE, PWM_OUT_6, 0);
+//		break;
+//
+//	case 1:
+//		PWMPulseWidthSet(PWM_BASE, PWM_OUT_6, PWMGenPeriodGet(PWM_BASE, PWM_GEN_3) / 6);
+//		break;
+//
+//	case 2:
+//		PWMPulseWidthSet(PWM_BASE, PWM_OUT_6, PWMGenPeriodGet(PWM_BASE, PWM_GEN_3) / 2);
+//		break;
+//
+//	case 3:
+//		PWMPulseWidthSet(PWM_BASE, PWM_OUT_6, PWMGenPeriodGet(PWM_BASE, PWM_GEN_3)-5);
+//		break;
+//	}
+//
+//	switch(tail_state)
+//	{
+//	case 0:
+//		if((in.buttons & R1_BUTTON) == R1_BUTTON)
+//		{
+//			PWMPulseWidthSet(PWM_BASE, PWM_OUT_7, PWMGenPeriodGet(PWM_BASE, PWM_GEN_3) - 5);
+//		}
+//		else
+//		{
+//			PWMPulseWidthSet(PWM_BASE, PWM_OUT_7, 0);
+//		}
+//		break;
+//	case 1:
+//	case 2:
+//	case 3:
+//
+//		if((in.buttons & R1_BUTTON) == R1_BUTTON)
+//		{
+//			PWMPulseWidthSet(PWM_BASE, PWM_OUT_7, PWMGenPeriodGet(PWM_BASE, PWM_GEN_3) - 5);
+//		}
+//		else
+//		{
+//			PWMPulseWidthSet(PWM_BASE, PWM_OUT_7, PWMGenPeriodGet(PWM_BASE, PWM_GEN_3) / 3);
+//		}
+//		break;
+//
+//	}
 
 	last_buttons = in.buttons;
 
