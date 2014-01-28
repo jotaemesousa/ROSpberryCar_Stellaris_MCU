@@ -219,7 +219,7 @@ void Timer0IntHandler(void)
 	HWREG(TIMER0_BASE + TIMER_O_ICR) = TIMER_TIMA_TIMEOUT;
 	//TimerIntClear(TIMER0_BASE, TIMER_TIMA_TIMEOUT);
 
-	HWREG(GPIO_PORTB_AHB_BASE + GPIO_O_DATA + ((GPIO_PIN_7 ) << 2)) = (GPIO_PIN_7 );  //portb7 high
+	//HWREG(GPIO_PORTB_AHB_BASE + GPIO_O_DATA + ((GPIO_PIN_7 ) << 2)) = (GPIO_PIN_7 );  //portb7 high
 	//HWREG(GPIO_PORTD_AHB_BASE + GPIO_O_DATA + ((GPIO_PIN_0 ) << 2)) = (GPIO_PIN_0 );  //portb7 low
 	unsigned char i= 0;
 	updateSoftPWM(1);
@@ -232,7 +232,7 @@ void Timer0IntHandler(void)
 	//		}
 	//	}
 
-	HWREG(GPIO_PORTB_AHB_BASE + GPIO_O_DATA + ((GPIO_PIN_7 ) << 2)) = (0 );  //portb7 low
+	//HWREG(GPIO_PORTB_AHB_BASE + GPIO_O_DATA + ((GPIO_PIN_7 ) << 2)) = (0 );  //portb7 low
 	//HWREG(GPIO_PORTD_AHB_BASE + GPIO_O_DATA + ((GPIO_PIN_0 ) << 2)) = (0 );  //portb7 low
 }
 

@@ -118,6 +118,7 @@ int main(void)
 
 	InitConsole();
 	UARTEchoSet(false);
+
 	RC_remote ferrari;
 	ferrari.linear = 0;
 	ferrari.steer = 0;
@@ -128,23 +129,30 @@ int main(void)
 	RC_Param car_param;
 
 #ifdef DEBUG
-	UARTprintf("Setting up Servo ...");
+	UARTprintf("Setting up PWM ... \n");
+#endif
+	//configurePWM();
+#ifdef DEBUG
+	UARTprintf("Done \n");
+#endif
+#ifdef DEBUG
+	UARTprintf("Setting up GPIO ... \n");
+#endif
+	configureGPIO();
+#ifdef DEBUG
+	UARTprintf("Done \n");
+#endif
+#ifdef DEBUG
+	UARTprintf("Setting up Servo ...\n");
 #endif
 //	servo_init();
 //	servo_setPosition(90);
 #ifdef DEBUG
 	UARTprintf("Done \n");
 #endif
+
 #ifdef DEBUG
-	UARTprintf("Setting up PWM ... ");
-#endif
-//	configurePWM();
-	configureGPIO();
-#ifdef DEBUG
-	UARTprintf("Done \n");
-#endif
-#ifdef DEBUG
-	UARTprintf("Starting QEI...");
+	UARTprintf("Starting QEI...\n");
 #endif
 	//encoder_init();
 #ifdef DEBUG
@@ -153,7 +161,7 @@ int main(void)
 
 #ifdef USE_I2C
 #ifdef DEBUG
-	UARTprintf("Starting i2c ...");
+	UARTprintf("Starting i2c ...\n");
 #endif
 	//I2C
 	SysCtlPeripheralEnable(SYSCTL_PERIPH_I2C0);
@@ -169,7 +177,7 @@ int main(void)
 #ifdef USE_I2C
 #ifdef USE_INA226
 #ifdef DEBUG
-	UARTprintf("setting up ina226 ...");
+	UARTprintf("setting up ina226 ...\n");
 #endif
 	INA226 power_meter = INA226(0x45);
 	power_meter.set_sample_average(4);
@@ -320,25 +328,9 @@ int main(void)
 
 void configurePWM(void)
 {
-//	MAP_SysCtlPeripheralEnable(SYSCTL_PERIPH_PWM);
-//	MAP_SysCtlPeripheralEnable(SYSCTL_PERIPH_GPIOA);
-//	MAP_SysCtlPeripheralEnable(SYSCTL_PERIPH_GPIOC);
-//	MAP_GPIOPinTypePWM(GPIO_PORTA_BASE, GPIO_PIN_6 | GPIO_PIN_7);
-//
-//	MAP_PWMGenConfigure(PWM_BASE,PWM_GEN_2,PWM_GEN_MODE_DOWN|PWM_GEN_MODE_NO_SYNC);
-//	MAP_PWMGenConfigure(PWM_BASE,PWM_GEN_3,PWM_GEN_MODE_DOWN|PWM_GEN_MODE_NO_SYNC);
-//
-//	MAP_PWMGenPeriodSet(PWM_BASE, PWM_GEN_2, MAX_PWM_DRIVE);		// Drive PWM
-//	MAP_PWMGenPeriodSet(PWM_BASE, PWM_GEN_3, MAX_PWM_DRIVE);		// Drive PWM
-//
-//	MAP_PWMGenEnable(PWM_BASE, PWM_GEN_2);
-//	MAP_PWMGenEnable(PWM_BASE, PWM_GEN_3);
-//
-//	MAP_PWMOutputState(PWM_BASE, PWM_OUT_4_BIT | PWM_OUT_5_BIT, false);
-//
-//	MAP_GPIOPinTypeGPIOOutput(GPIO_PORTC_BASE, GPIO_PIN_6);
-//	MAP_GPIOPinTypeGPIOOutput(GPIO_PORTC_BASE, GPIO_PIN_4);
-
+	initSoftPWM(500,40);
+	setPWMGenFreq(1,50);
+	enablePWM();
 }
 
 void configureGPIO(void)
