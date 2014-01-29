@@ -7,7 +7,6 @@ extern "C" {
 #include <driverlib/adc.h>
 #include <driverlib/interrupt.h>
 #include <driverlib/i2c.h>
-//#include <driverlib/pwm.h>
 #include <driverlib/rom.h>
 #include <driverlib/rom_map.h>
 #include <driverlib/sysctl.h>
@@ -35,10 +34,6 @@ extern "C" {
 
 // HEARTBEAT
 #define TICKS_PER_SECOND 		1000
-
-// servo and drive
-#define MAX_PWM_STEER			100
-#define MAX_PWM_DRIVE			10000
 
 // debug
 #define DEBUG
@@ -136,15 +131,13 @@ int main(void)
 	UARTprintf("Done \n");
 #endif
 
-
-
-//#ifdef DEBUG
-//	UARTprintf("Setting up GPIO ... \n");
-//#endif
-//	configureGPIO();
-//#ifdef DEBUG
-//	UARTprintf("Done \n");
-//#endif
+#ifdef DEBUG
+	UARTprintf("Setting up GPIO ... \n");
+#endif
+	configureGPIO();
+#ifdef DEBUG
+	UARTprintf("Done \n");
+#endif
 #ifdef DEBUG
 	UARTprintf("Setting up Servo ...\n");
 #endif
@@ -254,27 +247,25 @@ int main(void)
 					UARTprintf("L = %d, A = %d\n",(int)ferrari288gto.Drive, (int)ferrari288gto.Steer);
 #endif
 					servo_setPosition(ferrari288gto.Steer);
-//					ferrari288gto.last_millis = millis();
-					//							drive_pwm(ferrari288gto.Drive, 0);
-
-					velocity_pid.setNewReference((float)ferrari288gto.Drive/4.0,0);
+					ferrari288gto.last_millis = millis();
+					drive_pwm(ferrari288gto.Drive, 0);
 
 					if((ferrari.buttons & ASK_BIT) == ASK_BIT)
 					{
-//						uint8_t temp;
-//						temp = GPIOPinRead(GPIO_PORTE_BASE, GPIO_PIN_1);
-//
-//#ifdef DEBUG
-//						UARTprintf("portE1 = %x\n", temp);
-//#endif
-//						temp = (temp & GPIO_PIN_1) == GPIO_PIN_1 ? 0 : 1;
-//
-//#ifdef DEBUG
-//						UARTprintf("sent = %d\n", temp);
-//#endif
-//						radio.stopListening();
-//						radio.write(&temp, sizeof(uint8_t));
-//						radio.startListening();
+						//						uint8_t temp;
+						//						temp = GPIOPinRead(GPIO_PORTE_BASE, GPIO_PIN_1);
+						//
+						//#ifdef DEBUG
+						//						UARTprintf("portE1 = %x\n", temp);
+						//#endif
+						//						temp = (temp & GPIO_PIN_1) == GPIO_PIN_1 ? 0 : 1;
+						//
+						//#ifdef DEBUG
+						//						UARTprintf("sent = %d\n", temp);
+						//#endif
+						//						radio.stopListening();
+						//						radio.write(&temp, sizeof(uint8_t));
+						//						radio.startListening();
 					}
 
 
@@ -284,17 +275,17 @@ int main(void)
 			}
 		}
 
-//		if(millis() - last_car_param_millis > CAR_PARAM_MILLIS)
-//		{
-//			last_car_param_millis = millis();
-//
-//			int32_t l_vel, r_vel;
-//			encoder_get_velocity(&l_vel, &r_vel, millis());
-//			car_param.velocity = (l_vel + r_vel)/2;
-//			car_param.batery_level = power_meter.get_bus_voltage();
-//			car_param.x = 0;
-//			car_param.y = 0;
-//		}
+		//		if(millis() - last_car_param_millis > CAR_PARAM_MILLIS)
+		//		{
+		//			last_car_param_millis = millis();
+		//
+		//			int32_t l_vel, r_vel;
+		//			encoder_get_velocity(&l_vel, &r_vel, millis());
+		//			car_param.velocity = (l_vel + r_vel)/2;
+		//			car_param.batery_level = power_meter.get_bus_voltage();
+		//			car_param.x = 0;
+		//			car_param.y = 0;
+		//		}
 
 		if(millis() - last_dongle_millis > DONGLE_MILLIS)
 		{
@@ -315,17 +306,7 @@ int main(void)
 
 		serial_receive();
 
-		if(millis() - last_dongle_millis_pid > 50)
-		{
-			last_dongle_millis_pid = millis();
 
-			int32_t le = 0, re=0, out = 0;
-			encoder_read_reset(&le, &re);
-			out = velocity_pid.run(le);
-			drive_pwm(out,1);
-			le_sum += le;
-			re_sum += re;
-		}
 	}
 }
 
@@ -333,106 +314,93 @@ void configurePWM(void)
 {
 	initSoftPWM(500,40);
 
-	SysCtlPeripheralEnable(SYSCTL_PERIPH_GPIOD);
-	SysCtlGPIOAHBEnable(SYSCTL_PERIPH_GPIOD);
-	GPIOPinTypeGPIOOutput(GPIO_PORTD_AHB_BASE, GPIO_PIN_0 | GPIO_PIN_1);
 	setPWMGenFreq(1,50);
 
-	setPWMGenFreq(3,500);
-	SysCtlGPIOAHBEnable(SYSCTL_PERIPH_GPIOA);
-	GPIOPinTypeGPIOOutput(GPIO_PORTA_AHB_BASE, GPIO_PIN_6 | GPIO_PIN_7);
+	setPWMGenFreq(3,250);
 
+	setPWMGenFreq(4,250);
 
 	enablePWM();
 }
 
 void configureGPIO(void)
 {
-//	SysCtlPeripheralEnable(SYSCTL_PERIPH_GPIOE);
-//	MAP_GPIOPinTypeUART(GPIO_PORTE_BASE, GPIO_PIN_0 | GPIO_PIN_1);
-//
-//	// PE0 = Alert ina226
-//	// PE1 = IRQ MPU6050
-//
-//	GPIOPinTypeGPIOInput(GPIO_PORTE_BASE, GPIO_PIN_0 | GPIO_PIN_1);
+	MAP_SysCtlPeripheralEnable(SYSCTL_PERIPH_GPIOE);
+	MAP_SysCtlGPIOAHBEnable(SYSCTL_PERIPH_GPIOE);
+	MAP_GPIOPinTypeUART(GPIO_PORTE_AHB_BASE, GPIO_PIN_0 | GPIO_PIN_1);
+
+	// PE0 = Alert ina226
+	// PE1 = IRQ MPU6050
+
+	MAP_GPIOPinTypeGPIOInput(GPIO_PORTE_AHB_BASE, GPIO_PIN_0 | GPIO_PIN_1);
 
 }
 
 void drive_pwm(int pwm, bool brake)
 {
-//	if(!brake)
-//	{
-//		//write pwm vales
-//		if (pwm==0)
-//		{
-//			MAP_PWMOutputState(PWM_BASE, PWM_OUT_4_BIT | PWM_OUT_5_BIT, false);
-//		}
-//		else if(pwm > 0 && pwm < 127)
-//		{
-//			MAP_PWMOutputState(PWM_BASE, PWM_OUT_5_BIT, false);
-//			MAP_PWMOutputState(PWM_BASE, PWM_OUT_4_BIT, true);
-//			MAP_PWMPulseWidthSet(PWM_BASE, PWM_OUT_4, MAP_PWMGenPeriodGet(PWM_BASE, PWM_GEN_2) * pwm / 127);
-//
-//		}
-//		else if (pwm >=127)
-//		{
-//			MAP_PWMOutputState(PWM_BASE, PWM_OUT_5_BIT, false);
-//			MAP_PWMOutputState(PWM_BASE, PWM_OUT_4_BIT, true);
-//			MAP_PWMPulseWidthSet(PWM_BASE, PWM_OUT_4, MAP_PWMGenPeriodGet(PWM_BASE, PWM_GEN_2));
-//		}
-//		else if ( pwm > -127)
-//		{
-//			MAP_PWMOutputState(PWM_BASE, PWM_OUT_4_BIT, false);
-//			MAP_PWMOutputState(PWM_BASE, PWM_OUT_5_BIT, true);
-//			MAP_PWMPulseWidthSet(PWM_BASE, PWM_OUT_5, MAP_PWMGenPeriodGet(PWM_BASE, PWM_GEN_2) * -pwm / 127);
-//		}
-//		else
-//		{
-//			MAP_PWMOutputState(PWM_BASE, PWM_OUT_4_BIT, false);
-//			MAP_PWMOutputState(PWM_BASE, PWM_OUT_5_BIT, true);
-//			MAP_PWMPulseWidthSet(PWM_BASE, PWM_OUT_5, MAP_PWMGenPeriodGet(PWM_BASE, PWM_GEN_2));
-//		}
-//	}
-//	else
-//	{
-//		//write pwm vales
-//		if (pwm==0)
-//		{
-//			MAP_PWMOutputState(PWM_BASE, PWM_OUT_4_BIT | PWM_OUT_5_BIT, true);
-//			MAP_PWMPulseWidthSet(PWM_BASE, PWM_OUT_4, MAP_PWMGenPeriodGet(PWM_BASE, PWM_GEN_2));
-//			MAP_PWMPulseWidthSet(PWM_BASE, PWM_OUT_5, MAP_PWMGenPeriodGet(PWM_BASE, PWM_GEN_2));
-//		}
-//		else if(pwm > 0 && pwm < 127)
-//		{
-//			MAP_PWMOutputState(PWM_BASE, PWM_OUT_4_BIT | PWM_OUT_5_BIT, true);
-//			MAP_PWMPulseWidthSet(PWM_BASE, PWM_OUT_5, MAP_PWMGenPeriodGet(PWM_BASE, PWM_GEN_2) * (127 - pwm) / 127);
-//			MAP_PWMPulseWidthSet(PWM_BASE, PWM_OUT_4, MAP_PWMGenPeriodGet(PWM_BASE, PWM_GEN_2));
-//
-//		}
-//		else if (pwm >= 127)
-//		{
-//			MAP_PWMOutputState(PWM_BASE, PWM_OUT_4_BIT, true);
-//			MAP_PWMOutputState(PWM_BASE, PWM_OUT_5_BIT, false);
-//			MAP_PWMPulseWidthSet(PWM_BASE, PWM_OUT_4, MAP_PWMGenPeriodGet(PWM_BASE, PWM_GEN_2));
-//		}
-//		else if ( pwm > -127)
-//		{
-//			MAP_PWMOutputState(PWM_BASE, PWM_OUT_4_BIT | PWM_OUT_5_BIT, true);
-//			MAP_PWMPulseWidthSet(PWM_BASE, PWM_OUT_4, MAP_PWMGenPeriodGet(PWM_BASE, PWM_GEN_2) * (127 + pwm) / 127);
-//			MAP_PWMPulseWidthSet(PWM_BASE, PWM_OUT_5, MAP_PWMGenPeriodGet(PWM_BASE, PWM_GEN_2));
-//		}
-//		else
-//		{
-//			MAP_PWMOutputState(PWM_BASE, PWM_OUT_5_BIT, true);
-//			MAP_PWMOutputState(PWM_BASE, PWM_OUT_4_BIT, false);
-//			MAP_PWMPulseWidthSet(PWM_BASE, PWM_OUT_5, MAP_PWMGenPeriodGet(PWM_BASE, PWM_GEN_2));
-//		}
-//	}
+	if(!brake)
+	{
+		//write pwm vales
+		if(pwm == 0)
+		{
+			setSoftPWMDuty(4,0);
+			setSoftPWMDuty(5,0);
+		}
+		else if(pwm > 0 && pwm < 127)
+		{
+			setSoftPWMDuty(4,getSoftPWMmaxDuty(3) * pwm / 127);
+			setSoftPWMDuty(5,0);
+		}
+		else if (pwm >=127)
+		{
+			setSoftPWMDuty(4,getSoftPWMmaxDuty(3));
+			setSoftPWMDuty(5,0);
+		}
+		else if (pwm > -127)
+		{
+			setSoftPWMDuty(5,getSoftPWMmaxDuty(3) * -pwm / 127);
+			setSoftPWMDuty(4,0);
+		}
+		else
+		{
+			setSoftPWMDuty(5,getSoftPWMmaxDuty(3));
+			setSoftPWMDuty(4,0);
+		}
+	}
+	else
+	{
+		if(pwm == 0)
+		{
+			setSoftPWMDuty(4,getSoftPWMmaxDuty(3));
+			setSoftPWMDuty(5,getSoftPWMmaxDuty(3));
+		}
+		else if(pwm > 0 && pwm < 127)
+		{
+			setSoftPWMDuty(4,getSoftPWMmaxDuty(3));
+			setSoftPWMDuty(5,getSoftPWMmaxDuty(3) * (127 - pwm) / 127);
+		}
+		else if (pwm >=127)
+		{
+			setSoftPWMDuty(4,getSoftPWMmaxDuty(3));
+			setSoftPWMDuty(5,0);
+		}
+		else if (pwm > -127)
+		{
+			setSoftPWMDuty(4,getSoftPWMmaxDuty(3) * (127 - pwm) / 127);
+			setSoftPWMDuty(5,getSoftPWMmaxDuty(3));
+		}
+		else
+		{
+			setSoftPWMDuty(5,getSoftPWMmaxDuty(3));
+			setSoftPWMDuty(4,0);
+		}
+	}
 }
 
 void updateLights(RC_remote &in)
 {
-	static uint8_t last_buttons = 0, front_state = 0, tail_state = 0;
+	static uint8_t last_buttons = 0;
+	static int8_t front_state = 0, tail_state = 0;
 
 	if((in.buttons & R2_BUTTON) == R2_BUTTON)
 	{
@@ -461,52 +429,52 @@ void updateLights(RC_remote &in)
 		}
 	}
 
-//	switch (front_state)
-//	{
-//	case 0:
-//		PWMPulseWidthSet(PWM_BASE, PWM_OUT_6, 0);
-//		break;
-//
-//	case 1:
-//		PWMPulseWidthSet(PWM_BASE, PWM_OUT_6, PWMGenPeriodGet(PWM_BASE, PWM_GEN_3) / 6);
-//		break;
-//
-//	case 2:
-//		PWMPulseWidthSet(PWM_BASE, PWM_OUT_6, PWMGenPeriodGet(PWM_BASE, PWM_GEN_3) / 2);
-//		break;
-//
-//	case 3:
-//		PWMPulseWidthSet(PWM_BASE, PWM_OUT_6, PWMGenPeriodGet(PWM_BASE, PWM_GEN_3)-5);
-//		break;
-//	}
-//
-//	switch(tail_state)
-//	{
-//	case 0:
-//		if((in.buttons & R1_BUTTON) == R1_BUTTON)
-//		{
-//			PWMPulseWidthSet(PWM_BASE, PWM_OUT_7, PWMGenPeriodGet(PWM_BASE, PWM_GEN_3) - 5);
-//		}
-//		else
-//		{
-//			PWMPulseWidthSet(PWM_BASE, PWM_OUT_7, 0);
-//		}
-//		break;
-//	case 1:
-//	case 2:
-//	case 3:
-//
-//		if((in.buttons & R1_BUTTON) == R1_BUTTON)
-//		{
-//			PWMPulseWidthSet(PWM_BASE, PWM_OUT_7, PWMGenPeriodGet(PWM_BASE, PWM_GEN_3) - 5);
-//		}
-//		else
-//		{
-//			PWMPulseWidthSet(PWM_BASE, PWM_OUT_7, PWMGenPeriodGet(PWM_BASE, PWM_GEN_3) / 3);
-//		}
-//		break;
-//
-//	}
+	switch (front_state)
+	{
+	case 0:
+		setSoftPWMDuty(6,0);
+		break;
+
+	case 1:
+		setSoftPWMDuty(6,getSoftPWMmaxDuty(4) / 6);
+		break;
+
+	case 2:
+		setSoftPWMDuty(6,getSoftPWMmaxDuty(4) / 3);
+		break;
+
+	case 3:
+		setSoftPWMDuty(6,getSoftPWMmaxDuty(4));
+		break;
+	}
+
+	switch(tail_state)
+	{
+	case 0:
+		if((in.buttons & R1_BUTTON) == R1_BUTTON)
+		{
+			setSoftPWMDuty(7,getSoftPWMmaxDuty(4));
+		}
+		else
+		{
+			setSoftPWMDuty(7,0);
+		}
+		break;
+	case 1:
+	case 2:
+	case 3:
+
+		if((in.buttons & R1_BUTTON) == R1_BUTTON)
+		{
+			setSoftPWMDuty(7,getSoftPWMmaxDuty(4));
+		}
+		else
+		{
+			setSoftPWMDuty(7,getSoftPWMmaxDuty(4) / 3);
+		}
+		break;
+
+	}
 
 	last_buttons = in.buttons;
 

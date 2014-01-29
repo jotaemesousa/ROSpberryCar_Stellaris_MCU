@@ -25,7 +25,7 @@
 #include "stdint.h"
 #include "stdlib.h"
 
-//#define UART_DEBUG
+#define UART_DEBUG
 
 static const uint32_t pin_table [8] = {GPIO_PIN_0, GPIO_PIN_1, GPIO_PIN_0, GPIO_PIN_1, GPIO_PIN_6, GPIO_PIN_7, GPIO_PIN_4, GPIO_PIN_6};
 static const uint32_t pin_table_index [8] = {0, 1, 0, 1, 6, 7, 4, 6};
@@ -35,7 +35,7 @@ static const uint32_t periph_table [4] = {SYSCTL_PERIPH_GPIOD, SYSCTL_PERIPH_GPI
 uint32_t lastDutyCycle[MAX_PWM_GENERATORS*2];
 
 
-void initSoftPWM(unsigned int max_freq, unsigned int res_min)
+void initSoftPWM(uint32_t max_freq, uint32_t res_min)
 {
 	if(max_freq < 10000 && max_freq > 0 &&
 			res_min > 0 && max_freq * res_min <= 500000)
@@ -51,7 +51,7 @@ void initSoftPWM(unsigned int max_freq, unsigned int res_min)
 #ifdef UART_DEBUG
 	UARTprintf("Freq = %u, min_res = %u\n", max_pwm_freq, min_pwm_res);
 #endif
-
+	uint32_t value_timer = SysCtlClockGet() / (max_pwm_freq * min_pwm_res);
 
 	SysCtlPeripheralEnable(SYSCTL_PERIPH_TIMER0);
 	TimerConfigure(TIMER0_BASE, TIMER_CFG_32_BIT_PER);
@@ -88,28 +88,39 @@ uint8_t setPWMGenFreq(uint8_t generator, unsigned int freq)
 
 #ifdef UART_DEBUG
 			UARTprintf(" max count  %u", max_count[generator - 1] );
-			UARTprintf("Freq = %u, min_res = %u\n", max_pwm_freq, min_pwm_res);
+			UARTprintf("Freq max = %u, min_res = %u\n", max_pwm_freq, min_pwm_res);
 			UARTprintf("port = %x, pin = %x\n", port_table[generator - 1], (1 << pin_table[(generator - 1) * 2]) | (1 << pin_table[(generator - 1) * 2 + 1]));
 #endif
-//			MAP_SysCtlPeripheralEnable(periph_table[generator - 1]);
-//			MAP_SysCtlGPIOAHBEnable(periph_table[generator - 1]);
-//			MAP_GPIOPinTypeGPIOOutput(port_table[generator - 1], (pin_table[(generator - 1) * 2]) | (pin_table[(generator - 1) * 2 + 1]));
+			MAP_SysCtlPeripheralEnable(periph_table[generator - 1]);
+			MAP_SysCtlGPIOAHBEnable(periph_table[generator - 1]);
+			MAP_GPIOPinTypeGPIOOutput(port_table[generator - 1], (pin_table[(generator - 1) * 2]) | (pin_table[(generator - 1) * 2 + 1]));
 
 			lookUp_pwm[(generator - 1) * 2] = (uint8_t *)malloc(max_count[generator - 1]);
 			lookUp_pwm[(generator - 1) * 2 + 1] = (uint8_t *)malloc(max_count[generator - 1]);
 
 			memset(lookUp_pwm[(generator - 1) * 2], 0, max_count[generator - 1]);
 			memset(lookUp_pwm[(generator - 1) * 2 + 1], 0, max_count[generator - 1]);
+			//			int i = 0;
+			//			for (i = 0; i < max_count[generator - 1]; ++i)
+			//			{
+			//				lookUp_pwm[(generator - 1) * 2][i] = 0;
+			//				lookUp_pwm[(generator - 1) * 2 + 1][i] = 0;
+			//			}
+
 			lastDutyCycle[(generator - 1) * 2] = 0;
 			lastDutyCycle[(generator - 1) * 2 + 1] = 0;
 
-#ifdef UART_DEBUG
+			//			uint8_t array[pwm_counters[(generator - 1)]];
+			//			memcpy(array,lookUp_pwm[(generator - 1) * 2],pwm_counters[(generator - 1)]);
+
+#ifdef UART_DEBUG2
+			int i;
 			UARTprintf("printing tab...");
 			for(i = 0; i < max_count[generator - 1]; i++)
 			{
 				UARTprintf("%d ", lookUp_pwm[(generator - 1) * 2 ][i]);
 			}
-			UARTprintf("pr \n");
+			UARTprintf("printing tab2... \n");
 			for(i = 0; i < max_count[generator - 1]; i++)
 			{
 				UARTprintf("%d ", lookUp_pwm[(generator - 1) * 2 +1][i]);
@@ -138,7 +149,12 @@ void updateSoftPWM(unsigned char index)
 	uint32_t value1 = (lookUp_pwm[index2][pwm_counters[index]])<< pin_table_index[index2];
 	uint32_t value2 = (lookUp_pwm[index21][pwm_counters[index]])<< pin_table_index[index21];
 
-	HWREG(port_table[index] + GPIO_O_DATA + ((pin1 + pin2) << 2)) = (value1 + value2);  //portb7 low
+	//	uint8_t array[pwm_counters[index]];
+	//	memcpy(array,lookUp_pwm[index2],pwm_counters[index]);
+	uint8_t coiso = lookUp_pwm[index2][pwm_counters[index]];
+	uint8_t coiso2 = lookUp_pwm[index21][pwm_counters[index]];
+
+	HWREG(port_table[index] + GPIO_O_DATA + ((pin1 | pin2) << 2)) = (value1 | value2);  //portb7 low
 
 	pwm_counters[index] = (pwm_counters[index] + 1) % max_count[index];
 
@@ -147,11 +163,12 @@ void updateSoftPWM(unsigned char index)
 #endif
 }
 
-uint8_t setSoftPWMDuty(uint8_t pwm, unsigned long int dcycle)
+uint8_t setSoftPWMDuty(uint8_t pwm, unsigned long int duty)
 {
-	if(pwm >= 0 && pwm <= (MAX_PWM_GENERATORS * 2))
+	int32_t dcycle = duty;
+	if(pwm >= 0 && pwm < (MAX_PWM_GENERATORS * 2))
 	{
-		if(dcycle < getSoftPWMPeriod(pwm/2 + 1) && dcycle >= 0)
+		if(dcycle < getSoftPWMPeriod((pwm >> 1) + 1) && dcycle >= 0)
 		{
 			if(dcycle < lastDutyCycle[pwm])
 			{
@@ -164,7 +181,7 @@ uint8_t setSoftPWMDuty(uint8_t pwm, unsigned long int dcycle)
 			else if(dcycle > lastDutyCycle[pwm])
 			{
 				int32_t i;
-				for(i = lastDutyCycle[pwm]; i <= dcycle - 1; i++)
+				for(i = lastDutyCycle[pwm]; i <= dcycle; i++)
 				{
 					lookUp_pwm[pwm][i] = 1;
 				}
@@ -172,10 +189,10 @@ uint8_t setSoftPWMDuty(uint8_t pwm, unsigned long int dcycle)
 			lastDutyCycle[pwm] = dcycle;
 			return 0;
 		}
-		else if(dcycle >= getSoftPWMPeriod(pwm/2 + 1))
+		else if(dcycle >= getSoftPWMPeriod((pwm >> 1) + 1))
 		{
 			int32_t i;
-			for(i = lastDutyCycle[pwm]; i < getSoftPWMPeriod(pwm/2 + 1); i++)
+			for(i = lastDutyCycle[pwm]; i < getSoftPWMPeriod((pwm >> 1) + 1); i++)
 			{
 				lookUp_pwm[pwm][i] = 1;
 			}
@@ -214,6 +231,20 @@ int32_t getSoftPWMPeriod(uint8_t generator)
 	}
 }
 
+int32_t getSoftPWMmaxDuty(uint8_t generator)
+{
+	return getSoftPWMPeriod(generator) - 1;
+}
+
+uint32_t getFreqGenerator(uint8_t generator)
+{
+	if(generator <= MAX_PWM_GENERATORS && generator > 0)
+	{
+		return freq_pwm[generator -1];
+	}
+	return 0;
+}
+
 void Timer0IntHandler(void)
 {
 	HWREG(TIMER0_BASE + TIMER_O_ICR) = TIMER_TIMA_TIMEOUT;
@@ -223,6 +254,8 @@ void Timer0IntHandler(void)
 	//HWREG(GPIO_PORTD_AHB_BASE + GPIO_O_DATA + ((GPIO_PIN_0 ) << 2)) = (GPIO_PIN_0 );  //portb7 low
 	unsigned char i= 0;
 	updateSoftPWM(0);
+	updateSoftPWM(2);
+	updateSoftPWM(3);
 	//	for(i = 0; i < MAX_PWM_GENERATORS; i++)
 	//	{
 	//		if(config_done[i])
