@@ -29,7 +29,7 @@ extern "C" {
 // use sensors
 //#define USE_I2C
 //#define USE_INA226
-#define USE_NRF24
+//#define USE_NRF24
 
 #define SYSTICKS_PER_SECOND     1000
 
@@ -58,12 +58,12 @@ void InitConsole(void)
 	// TODO: change this to whichever GPIO port you are using.
 	//
 	MAP_SysCtlPeripheralEnable(SYSCTL_PERIPH_GPIOA);
-
+	MAP_SysCtlGPIOAHBEnable(SYSCTL_PERIPH_GPIOA);
 	//
 	// Select the alternate (UART) function for these pins.
 	// TODO: change this to select the port/pin you are using.
 	//
-	MAP_GPIOPinTypeUART(GPIO_PORTA_BASE, GPIO_PIN_0 | GPIO_PIN_1);
+	MAP_GPIOPinTypeUART(GPIO_PORTA_AHB_BASE, GPIO_PIN_0 | GPIO_PIN_1);
 
 	//
 	// Initialize the UART for console I/O.
@@ -131,22 +131,25 @@ int main(void)
 #ifdef DEBUG
 	UARTprintf("Setting up PWM ... \n");
 #endif
-	//configurePWM();
+	configurePWM();
 #ifdef DEBUG
 	UARTprintf("Done \n");
 #endif
-#ifdef DEBUG
-	UARTprintf("Setting up GPIO ... \n");
-#endif
-	configureGPIO();
-#ifdef DEBUG
-	UARTprintf("Done \n");
-#endif
+
+
+
+//#ifdef DEBUG
+//	UARTprintf("Setting up GPIO ... \n");
+//#endif
+//	configureGPIO();
+//#ifdef DEBUG
+//	UARTprintf("Done \n");
+//#endif
 #ifdef DEBUG
 	UARTprintf("Setting up Servo ...\n");
 #endif
-//	servo_init();
-//	servo_setPosition(90);
+	servo_init();
+	servo_setPosition(90);
 #ifdef DEBUG
 	UARTprintf("Done \n");
 #endif
@@ -154,7 +157,7 @@ int main(void)
 #ifdef DEBUG
 	UARTprintf("Starting QEI...\n");
 #endif
-	//encoder_init();
+	encoder_init();
 #ifdef DEBUG
 	UARTprintf("Done \n");
 #endif
@@ -250,8 +253,8 @@ int main(void)
 #ifdef DEBUG_CMD
 					UARTprintf("L = %d, A = %d\n",(int)ferrari288gto.Drive, (int)ferrari288gto.Steer);
 #endif
-					servo_setPosition(ferrari288gto.Steer);
-					ferrari288gto.last_millis = millis();
+//					servo_setPosition(ferrari288gto.Steer);
+//					ferrari288gto.last_millis = millis();
 					//							drive_pwm(ferrari288gto.Drive, 0);
 
 					velocity_pid.setNewReference((float)ferrari288gto.Drive/4.0,0);
@@ -329,19 +332,29 @@ int main(void)
 void configurePWM(void)
 {
 	initSoftPWM(500,40);
+
+	SysCtlPeripheralEnable(SYSCTL_PERIPH_GPIOD);
+	SysCtlGPIOAHBEnable(SYSCTL_PERIPH_GPIOD);
+	GPIOPinTypeGPIOOutput(GPIO_PORTD_AHB_BASE, GPIO_PIN_0 | GPIO_PIN_1);
 	setPWMGenFreq(1,50);
+
+	setPWMGenFreq(3,500);
+	SysCtlGPIOAHBEnable(SYSCTL_PERIPH_GPIOA);
+	GPIOPinTypeGPIOOutput(GPIO_PORTA_AHB_BASE, GPIO_PIN_6 | GPIO_PIN_7);
+
+
 	enablePWM();
 }
 
 void configureGPIO(void)
 {
-	SysCtlPeripheralEnable(SYSCTL_PERIPH_GPIOE);
-	MAP_GPIOPinTypeUART(GPIO_PORTE_BASE, GPIO_PIN_0 | GPIO_PIN_1);
-
-	// PE0 = Alert ina226
-	// PE1 = IRQ MPU6050
-
-	GPIOPinTypeGPIOInput(GPIO_PORTE_BASE, GPIO_PIN_0 | GPIO_PIN_1);
+//	SysCtlPeripheralEnable(SYSCTL_PERIPH_GPIOE);
+//	MAP_GPIOPinTypeUART(GPIO_PORTE_BASE, GPIO_PIN_0 | GPIO_PIN_1);
+//
+//	// PE0 = Alert ina226
+//	// PE1 = IRQ MPU6050
+//
+//	GPIOPinTypeGPIOInput(GPIO_PORTE_BASE, GPIO_PIN_0 | GPIO_PIN_1);
 
 }
 

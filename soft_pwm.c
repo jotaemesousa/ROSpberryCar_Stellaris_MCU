@@ -27,8 +27,8 @@
 
 //#define UART_DEBUG
 
-static const uint32_t pin_table [8] = {GPIO_PIN_0, GPIO_PIN_1, GPIO_PIN_0, GPIO_PIN_6, GPIO_PIN_6, GPIO_PIN_7, GPIO_PIN_4, GPIO_PIN_6};
-static const uint32_t pin_table_index [8] = {0, 1, 0, 6, 6, 7, 4, 6};
+static const uint32_t pin_table [8] = {GPIO_PIN_0, GPIO_PIN_1, GPIO_PIN_0, GPIO_PIN_1, GPIO_PIN_6, GPIO_PIN_7, GPIO_PIN_4, GPIO_PIN_6};
+static const uint32_t pin_table_index [8] = {0, 1, 0, 1, 6, 7, 4, 6};
 static const uint32_t port_table [4] = {GPIO_PORTD_AHB_BASE, GPIO_PORTB_AHB_BASE, GPIO_PORTA_AHB_BASE, GPIO_PORTC_AHB_BASE};
 static const uint32_t periph_table [4] = {SYSCTL_PERIPH_GPIOD, SYSCTL_PERIPH_GPIOB, SYSCTL_PERIPH_GPIOA, SYSCTL_PERIPH_GPIOC};
 
@@ -91,9 +91,9 @@ uint8_t setPWMGenFreq(uint8_t generator, unsigned int freq)
 			UARTprintf("Freq = %u, min_res = %u\n", max_pwm_freq, min_pwm_res);
 			UARTprintf("port = %x, pin = %x\n", port_table[generator - 1], (1 << pin_table[(generator - 1) * 2]) | (1 << pin_table[(generator - 1) * 2 + 1]));
 #endif
-			MAP_SysCtlPeripheralEnable(periph_table[generator - 1]);
-			MAP_SysCtlGPIOAHBEnable(periph_table[generator - 1]);
-			MAP_GPIOPinTypeGPIOOutput(port_table[generator - 1], (pin_table[(generator - 1) * 2]) | (pin_table[(generator - 1) * 2 + 1]));
+//			MAP_SysCtlPeripheralEnable(periph_table[generator - 1]);
+//			MAP_SysCtlGPIOAHBEnable(periph_table[generator - 1]);
+//			MAP_GPIOPinTypeGPIOOutput(port_table[generator - 1], (pin_table[(generator - 1) * 2]) | (pin_table[(generator - 1) * 2 + 1]));
 
 			lookUp_pwm[(generator - 1) * 2] = (uint8_t *)malloc(max_count[generator - 1]);
 			lookUp_pwm[(generator - 1) * 2 + 1] = (uint8_t *)malloc(max_count[generator - 1]);
@@ -222,7 +222,7 @@ void Timer0IntHandler(void)
 	//HWREG(GPIO_PORTB_AHB_BASE + GPIO_O_DATA + ((GPIO_PIN_7 ) << 2)) = (GPIO_PIN_7 );  //portb7 high
 	//HWREG(GPIO_PORTD_AHB_BASE + GPIO_O_DATA + ((GPIO_PIN_0 ) << 2)) = (GPIO_PIN_0 );  //portb7 low
 	unsigned char i= 0;
-	updateSoftPWM(1);
+	updateSoftPWM(0);
 	//	for(i = 0; i < MAX_PWM_GENERATORS; i++)
 	//	{
 	//		if(config_done[i])
