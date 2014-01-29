@@ -29,7 +29,7 @@ extern "C" {
 // use sensors
 //#define USE_I2C
 //#define USE_INA226
-//#define USE_NRF24
+#define USE_NRF24
 
 #define SYSTICKS_PER_SECOND     1000
 
@@ -253,7 +253,7 @@ int main(void)
 #ifdef DEBUG_CMD
 					UARTprintf("L = %d, A = %d\n",(int)ferrari288gto.Drive, (int)ferrari288gto.Steer);
 #endif
-//					servo_setPosition(ferrari288gto.Steer);
+					servo_setPosition(ferrari288gto.Steer);
 //					ferrari288gto.last_millis = millis();
 					//							drive_pwm(ferrari288gto.Drive, 0);
 
@@ -261,20 +261,20 @@ int main(void)
 
 					if((ferrari.buttons & ASK_BIT) == ASK_BIT)
 					{
-						uint8_t temp;
-						temp = GPIOPinRead(GPIO_PORTE_BASE, GPIO_PIN_1);
-
-#ifdef DEBUG
-						UARTprintf("portE1 = %x\n", temp);
-#endif
-						temp = (temp & GPIO_PIN_1) == GPIO_PIN_1 ? 0 : 1;
-
-#ifdef DEBUG
-						UARTprintf("sent = %d\n", temp);
-#endif
-						radio.stopListening();
-						radio.write(&temp, sizeof(uint8_t));
-						radio.startListening();
+//						uint8_t temp;
+//						temp = GPIOPinRead(GPIO_PORTE_BASE, GPIO_PIN_1);
+//
+//#ifdef DEBUG
+//						UARTprintf("portE1 = %x\n", temp);
+//#endif
+//						temp = (temp & GPIO_PIN_1) == GPIO_PIN_1 ? 0 : 1;
+//
+//#ifdef DEBUG
+//						UARTprintf("sent = %d\n", temp);
+//#endif
+//						radio.stopListening();
+//						radio.write(&temp, sizeof(uint8_t));
+//						radio.startListening();
 					}
 
 

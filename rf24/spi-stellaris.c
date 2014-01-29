@@ -17,10 +17,10 @@
 
 #include "spi.h"
 
-#define CS_PIN_BASE GPIO_PORTA_BASE
+#define CS_PIN_BASE GPIO_PORTA_AHB_BASE
 #define CS_PIN GPIO_PIN_3
 
-#define CE_PIN_BASE GPIO_PORTC_BASE
+#define CE_PIN_BASE GPIO_PORTC_AHB_BASE
 #define CE_PIN GPIO_PIN_5
 
 static unsigned long ulClockMS=0;
@@ -29,6 +29,8 @@ void spi_init(unsigned long bitrate,unsigned long datawidth){
 	//SSI
 	MAP_SysCtlPeripheralEnable(SYSCTL_PERIPH_GPIOA);
 	MAP_SysCtlPeripheralEnable(SYSCTL_PERIPH_GPIOC);
+	MAP_SysCtlGPIOAHBEnable(SYSCTL_PERIPH_GPIOC);
+	MAP_SysCtlGPIOAHBEnable(SYSCTL_PERIPH_GPIOA);
 	MAP_SysCtlPeripheralEnable(SYSCTL_PERIPH_SSI0);
 
 	//CS Pin
@@ -40,7 +42,7 @@ void spi_init(unsigned long bitrate,unsigned long datawidth){
 	/* Configure the SSI0 port */
 	MAP_SSIConfigSetExpClk(SSI0_BASE, SysCtlClockGet(), SSI_FRF_MOTO_MODE_0,SSI_MODE_MASTER, bitrate, datawidth);
 	/* Configure the appropriate pins to be SSI instead of GPIO */
-	MAP_GPIOPinTypeSSI(GPIO_PORTA_BASE, GPIO_PIN_2 |GPIO_PIN_4 | GPIO_PIN_5);
+	MAP_GPIOPinTypeSSI(GPIO_PORTA_AHB_BASE, GPIO_PIN_2 |GPIO_PIN_4 | GPIO_PIN_5);
 	MAP_SSIEnable(SSI0_BASE);
 
 	ulClockMS = MAP_SysCtlClockGet() / (3 * 1000);
