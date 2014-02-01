@@ -34,6 +34,11 @@ static const uint32_t periph_table [4] = {SYSCTL_PERIPH_GPIOD, SYSCTL_PERIPH_GPI
 
 uint32_t lastDutyCycle[MAX_PWM_GENERATORS*2];
 
+#ifdef __cplusplus
+extern "C"
+{
+#endif
+
 
 void initSoftPWM(uint32_t max_freq, uint32_t res_min)
 {
@@ -248,24 +253,12 @@ uint32_t getFreqGenerator(uint8_t generator)
 void Timer0IntHandler(void)
 {
 	HWREG(TIMER0_BASE + TIMER_O_ICR) = TIMER_TIMA_TIMEOUT;
-	//TimerIntClear(TIMER0_BASE, TIMER_TIMA_TIMEOUT);
 
-	//HWREG(GPIO_PORTB_AHB_BASE + GPIO_O_DATA + ((GPIO_PIN_7 ) << 2)) = (GPIO_PIN_7 );  //portb7 high
-	//HWREG(GPIO_PORTD_AHB_BASE + GPIO_O_DATA + ((GPIO_PIN_0 ) << 2)) = (GPIO_PIN_0 );  //portb7 low
-	unsigned char i= 0;
 	updateSoftPWM(0);
 	updateSoftPWM(2);
 	updateSoftPWM(3);
-	//	for(i = 0; i < MAX_PWM_GENERATORS; i++)
-	//	{
-	//		if(config_done[i])
-	//		{
-	//			updateSoftPWM(i);
-	//
-	//		}
-	//	}
-
-	//HWREG(GPIO_PORTB_AHB_BASE + GPIO_O_DATA + ((GPIO_PIN_7 ) << 2)) = (0 );  //portb7 low
-	//HWREG(GPIO_PORTD_AHB_BASE + GPIO_O_DATA + ((GPIO_PIN_0 ) << 2)) = (0 );  //portb7 low
 }
 
+#ifdef __cplusplus
+}
+#endif

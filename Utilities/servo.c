@@ -23,6 +23,11 @@
 uint32_t beggining[2];
 uint32_t end[2];
 
+#ifdef __cplusplus
+extern "C"
+{
+#endif
+
 void servo_init()
 {
 	beggining[0] = (getSoftPWMPeriod(SERVO_ESC_PWM_GENERATOR) *
@@ -58,3 +63,7 @@ void esc_setPosition(int position)
 		setSoftPWMDuty(ESC_PWM, value);
 	}
 }
+
+#ifdef __cplusplus
+}
+#endif

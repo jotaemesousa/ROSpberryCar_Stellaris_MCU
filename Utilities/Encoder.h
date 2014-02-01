@@ -10,8 +10,8 @@
 
 #include <stdint.h>
 
-void encoder_read(int32_t *left_c, int32_t *right_c);
-void encoder_read_reset(int32_t *left_c, int32_t *right_c);
+void encoder_read(int32_t *left_c, int32_t *right_c, uint8_t counter = 0);
+void encoder_read_reset(int32_t *left_c, int32_t *right_c, uint8_t counter = 0);
 void encoder_get_velocity(int32_t *left_vel, int32_t *right_vel, uint32_t time);
 void encoder_init();
 

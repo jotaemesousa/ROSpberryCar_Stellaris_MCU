@@ -8,6 +8,8 @@
 #ifndef SERVO_H_
 #define SERVO_H_
 
+#include "../common_includes.h"
+
 // Servo Settings
 #define SERVO_CENTER_ANGLE		97 //97
 #define SERVO_LEFT_ANGLE		132//133
@@ -27,10 +29,16 @@
 #define ESC_MIN_ANGLE			0
 #define ESC_MAX_ANGLE			180
 
+#ifdef __cplusplus
+extern "C"
+{
+#endif
 
 void servo_init();
 void servo_setPosition(int position);
 void esc_setPosition(int position);
 
-
+#ifdef __cplusplus
+}
+#endif
 #endif /* SERVO_H_ */

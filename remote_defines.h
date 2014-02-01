@@ -45,13 +45,13 @@ typedef struct ROSpberryRemote
 
 }RC_remote;
 
-typedef struct ROSpberryCar
-{
-	int16_t velocity;
-	int16_t batery_level;
-	int16_t x;
-	int16_t y;
-
-}RC_Param;
+//typedef struct ROSpberryCar
+//{
+//	int16_t velocity;
+//	int16_t batery_level;
+//	int16_t x;
+//	int16_t y;
+//
+//}RC_Param;
 
 #endif /* REMOTE_DEFINES_H_ */
