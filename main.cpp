@@ -7,6 +7,7 @@
 #include "Utilities/pid.h"
 #include "Utilities/gpio_pwm_lights.h"
 #include "rf24/RF24.h"
+#include "car.h"
 
 #define INA226_ALERT_PIN		GPIO_PIN_0
 #define INA226_ALERT_PORT		GPIO_PORTE_AHB_BASE
@@ -161,34 +162,39 @@ int main(void)
 				{
 					if((ferrari.buttons & L1_BUTTON) == L1_BUTTON)
 					{
-
+						if((ferrari.buttons & R1_BUTTON) == R1_BUTTON)
+						{
+							drive_pwm(ferrari.linear, 1);
+						}
+						else
+						{
+							drive_pwm(ferrari.linear, 0);
+						}
 					}
 					else
 					{
-
+						if((ferrari.buttons & R1_BUTTON) == R1_BUTTON)
+						{
+							drive_pwm(map_value(ferrari.linear, -127, 127, -100, 100), 1);
+						}
+						else
+						{
+							drive_pwm(map_value(ferrari.linear, -127, 127, -100, 100), 0);
+						}
 					}
-
-					if((ferrari.buttons & R1_BUTTON) == R1_BUTTON)
-					{
-						servo_setPosition(map_value(ferrari.steer, -127, 127, SERVO_MIN, SERVO_MAX));
-					}
-					else
-					{
-						servo_setPosition(map_value(ferrari.steer, -127, 127, SERVO_MIN_PARTIAL, SERVO_MAX_PARTIAL));
-					}
-
+					servo_setPosition(map_value(ferrari.steer, -127.0, 127.0, SERVO_LEFT_ANGLE, SERVO_RIGHT_ANGLE));
 
 					last_millis = millis();
 
 					if((ferrari.buttons & ASK_BIT) == ASK_BIT)
 					{
 						uint8_t temp;
-						temp = GPIOPinRead(INA226_ALERT_PORT, INA226_ALERT_PIN);
+						temp = MAP_GPIOPinRead(INA226_ALERT_PORT, INA226_ALERT_PIN);
 
 #ifdef DEBUG
 						UARTprintf("portE1 = %x\n", temp);
 #endif
-						temp = (temp & INA226_ALERT_PIN) == INA226_ALERT_PIN ? 0 : 1;
+						temp = (temp & INA226_ALERT_PIN) == INA226_ALERT_PIN ? 1 : 0;
 
 #ifdef DEBUG
 						UARTprintf("sent = %d\n", ferrari.buttons);
@@ -197,10 +203,11 @@ int main(void)
 						radio.write(&temp, sizeof(uint8_t));
 						radio.startListening();
 					}
-					//					//SysCtlDelay(50*ulClockMS);
+
 				}
 			}
 		}
+		SysCtlDelay(50*ulClockMS);
 	}
 }
 
@@ -209,7 +216,7 @@ void SysTickHandler()
 {
 	milliSec++;
 
-	communication_update_function();
+	//communication_update_function();
 }
 
 uint32_t millis()

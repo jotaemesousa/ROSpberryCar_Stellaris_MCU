@@ -31,6 +31,8 @@ void spi_init(unsigned long bitrate,unsigned long datawidth){
 	MAP_SysCtlPeripheralEnable(SYSCTL_PERIPH_GPIOC);
 	MAP_SysCtlPeripheralEnable(SYSCTL_PERIPH_SSI0);
 
+	MAP_SysCtlGPIOAHBEnable(SYSCTL_PERIPH_GPIOA);
+	MAP_SysCtlGPIOAHBEnable(SYSCTL_PERIPH_GPIOC);
 	//CS Pin
 	MAP_GPIOPinTypeGPIOOutput(CS_PIN_BASE,CS_PIN);
 

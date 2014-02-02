@@ -7,21 +7,30 @@
 
 #include "gpio_pwm_lights.h"
 
+static uint16_t max_pwm = 0;
+static uint16_t max_pwm_lights = 0;
+
 void configurePWM(void)
 {
 	initSoftPWM(500,40);
+	setPWMGenFreq(1,50);
 	setPWMGenFreq(3,500);
 	setPWMGenFreq(4,500);
+
+	enablePWM();
+
+	max_pwm = getSoftPWMmaxDuty(3);
+	max_pwm_lights = getSoftPWMmaxDuty(4);
 }
 
 void configureGPIO(void)
 {
-	SysCtlPeripheralEnable(SYSCTL_PERIPH_GPIOE);
-
+	MAP_SysCtlPeripheralEnable(SYSCTL_PERIPH_GPIOE);
+	MAP_SysCtlGPIOAHBEnable(SYSCTL_PERIPH_GPIOE);
 	// PE0 = Alert ina226
 	// PE1 = IRQ MPU6050
 
-	GPIOPinTypeGPIOInput(GPIO_PORTE_AHB_BASE, GPIO_PIN_0 | GPIO_PIN_1);
+	MAP_GPIOPinTypeGPIOInput(GPIO_PORTE_AHB_BASE, GPIO_PIN_0 | GPIO_PIN_1);
 
 }
 
@@ -73,9 +82,9 @@ void drive_pwm(int pwm, bool brake)
 				setSoftPWMDuty(4,getSoftPWMmaxDuty(3));
 				setSoftPWMDuty(5,0);
 			}
-			else if (pwm > -127)
+			else if (pwm < 0 && pwm > -127)
 			{
-				setSoftPWMDuty(4,getSoftPWMmaxDuty(3) * (127 - pwm) / 127);
+				setSoftPWMDuty(4,getSoftPWMmaxDuty(3) * (127 + pwm) / 127);
 				setSoftPWMDuty(5,getSoftPWMmaxDuty(3));
 			}
 			else

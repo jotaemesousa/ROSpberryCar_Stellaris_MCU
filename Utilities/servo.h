@@ -12,8 +12,8 @@
 
 // Servo Settings
 #define SERVO_CENTER_ANGLE		97 //97
-#define SERVO_LEFT_ANGLE		132//133
-#define SERVO_RIGHT_ANGLE		55
+#define SERVO_LEFT_ANGLE		132.0//133
+#define SERVO_RIGHT_ANGLE		55.0
 
 #define SERVO_ESC_PWM_GENERATOR	1
 #define SERVO_PWM				1

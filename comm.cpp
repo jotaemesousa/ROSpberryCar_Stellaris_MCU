@@ -18,13 +18,13 @@ void initSerialComm(unsigned long ulBaud)
 	// Enable GPIO port A which is used for UART0 pins.
 	// TODO: change this to whichever GPIO port you are using.
 	//
-	SysCtlPeripheralEnable(SYSCTL_PERIPH_GPIOA);
+	MAP_SysCtlPeripheralEnable(SYSCTL_PERIPH_GPIOA);
 	//
 	// Select the alternate (UART) function for these pins.
 	// TODO: change this to select the port/pin you are using.
 	//
-	SysCtlGPIOAHBEnable(SYSCTL_PERIPH_GPIOA);
-	GPIOPinTypeUART(GPIO_PORTA_AHB_BASE, GPIO_PIN_0 | GPIO_PIN_1);
+	MAP_SysCtlGPIOAHBEnable(SYSCTL_PERIPH_GPIOA);
+	MAP_GPIOPinTypeUART(GPIO_PORTA_AHB_BASE, GPIO_PIN_0 | GPIO_PIN_1);
 
 	//
 	// Initialize the UART for console I/O.
