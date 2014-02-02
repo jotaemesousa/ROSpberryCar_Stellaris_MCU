@@ -47,16 +47,6 @@ int main(void)
 	// init Serial Comm
 	initSerialComm(230400);
 
-	// init SSI0 in slave mode
-	initSPIComm();
-
-#ifdef DEBUG
-	UARTprintf("Setting up PID\n");
-#endif
-	initCarPID();
-#ifdef DEBUG
-	UARTprintf("done\n");
-#endif
 
 #ifdef DEBUG
 	UARTprintf("Setting up PWM ... \n");

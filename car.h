@@ -58,7 +58,6 @@ extern "C"
 {
 #endif
 extern uint32_t millis();
-void SSIIntHandler(void);
 #ifdef __cplusplus
 }
 #endif
