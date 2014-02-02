@@ -29,6 +29,12 @@
 #define ESC_MIN_ANGLE			0
 #define ESC_MAX_ANGLE			180
 
+#define SERVO_MAX			120
+#define SERVO_MAX_PARTIAL	110
+#define SERVO_ZERO			90
+#define SERVO_MIN_PARTIAL	70
+#define SERVO_MIN			60
+
 #ifdef __cplusplus
 extern "C"
 {
