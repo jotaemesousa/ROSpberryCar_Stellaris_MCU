@@ -55,19 +55,19 @@ int main(void)
 #endif
 
 #ifdef DEBUG
-	UARTprintf("Setting up Servo ... \n");
+	UARTprintf("Setting up PWM ... \n");
 #endif
-	servo_init();
-	servo_setPosition(90);
+	configurePWM();
+	configureGPIO();
 #ifdef DEBUG
 	UARTprintf("done\n");
 #endif
 
 #ifdef DEBUG
-	UARTprintf("Setting up PWM ... \n");
+	UARTprintf("Setting up Servo ... \n");
 #endif
-	configurePWM();
-	configureGPIO();
+	servo_init();
+	servo_setPosition(90);
 #ifdef DEBUG
 	UARTprintf("done\n");
 #endif
@@ -80,19 +80,15 @@ int main(void)
 	UARTprintf("done\n");
 #endif
 
-#ifdef DEBUG
-	UARTprintf("SysCtlPeripheralEnable(SYSCTL_PERIPH_I2C0)\n");
-#endif
-
 #ifdef USE_I2C
 #ifdef DEBUG
 	UARTprintf("Setting up I2C\n");
 #endif
 	//I2C
-	SysCtlPeripheralEnable(SYSCTL_PERIPH_I2C0);
-	SysCtlPeripheralEnable(SYSCTL_PERIPH_GPIOB);
-	GPIOPinTypeI2C(GPIO_PORTB_BASE,GPIO_PIN_2 | GPIO_PIN_3);
-	I2CMasterInitExpClk(I2C0_MASTER_BASE,SysCtlClockGet(),true);  //false = 100khz , true = 400khz
+	MAP_SysCtlPeripheralEnable(SYSCTL_PERIPH_I2C0);
+	MAP_SysCtlPeripheralEnable(SYSCTL_PERIPH_GPIOB);
+	MAP_GPIOPinTypeI2C(GPIO_PORTB_AHB_BASE,GPIO_PIN_2 | GPIO_PIN_3);
+	MAP_I2CMasterInitExpClk(I2C0_MASTER_BASE,SysCtlClockGet(),true);  //false = 100khz , true = 400khz
 	I2CMasterTimeoutSet(I2C0_MASTER_BASE, 1000);
 #ifdef DEBUG
 	UARTprintf("done\n");

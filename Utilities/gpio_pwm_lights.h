@@ -13,6 +13,10 @@
 #include "../remote_defines.h"
 #include "servo.h"
 
+extern "C"
+{
+#include "../soft_pwm.h"
+}
 void configurePWM(void);
 void configureGPIO(void);
 void drive_pwm(int pwm, bool brake);

@@ -6,57 +6,64 @@
  */
 
 #include "servo.h"
+#include <inc/lm3s2776.h>
+#include <inc/hw_types.h>
+#include <inc/hw_memmap.h>
+#include <driverlib/debug.h>
+#include <driverlib/sysctl.h>
+#include <driverlib/systick.h>
+#include <driverlib/gpio.h>
+#include <driverlib/pwm.h>
+#include "utils/uartstdio.h"
+#include "utils/ustdlib.h"
+#include "stdint.h"
+#include "../soft_pwm.h"
 
 //62500 count values
+uint32_t beggining[2];
+uint32_t end[2];
+
+#ifdef __cplusplus
+extern "C"
+{
+#endif
 
 void servo_init()
 {
-	SysCtlPeripheralEnable(SYSCTL_PERIPH_PWM);
-	SysCtlPeripheralEnable(SYSCTL_PERIPH_GPIOD);
-	SysCtlPWMClockSet(SYSCTL_PWMDIV_16);
-	GPIOPinTypePWM(GPIO_PORTD_BASE,GPIO_PIN_1);
-
-
-	PWMGenConfigure(PWM_BASE,PWM_GEN_0,PWM_GEN_MODE_DOWN|PWM_GEN_MODE_NO_SYNC);
-	PWMGenPeriodSet(PWM_BASE, PWM_GEN_0, 62500);
-	servo_setPosition(SERVO_CENTER_ANGLE);
-	PWMOutputState(PWM_BASE, PWM_OUT_1_BIT, true);
-	PWMGenEnable(PWM_BASE, PWM_GEN_0);
-
+	beggining[0] = (getSoftPWMPeriod(SERVO_ESC_PWM_GENERATOR) *
+			getFreqGenerator(SERVO_ESC_PWM_GENERATOR) * SERVO_MIN_WIDTH) / 10000;
+	end[0] = (getSoftPWMPeriod(SERVO_ESC_PWM_GENERATOR) *
+			getFreqGenerator(SERVO_ESC_PWM_GENERATOR) * SERVO_MAX_WIDTH) / 10000;
+	beggining[1] = (getSoftPWMPeriod(SERVO_ESC_PWM_GENERATOR) *
+			getFreqGenerator(SERVO_ESC_PWM_GENERATOR) * ESC_MIN_WIDTH) / 10000;
+	end[1] = (getSoftPWMPeriod(SERVO_ESC_PWM_GENERATOR) *
+			getFreqGenerator(SERVO_ESC_PWM_GENERATOR) * ESC_MAX_WIDTH) / 10000;
 }
 
-#define BASE 1560
-#define END  7810
-
-void servo_setPosition(int32_t position)
+void servo_setPosition(int position)
 {
-	uint32_t value;
+	unsigned long int value;
 
-	if (position >= 0 && position <= 180)
+	if (position >= SERVO_MIN_ANGLE && position <= SERVO_MAX_ANGLE)
 	{
-		value =  BASE + (position * ((END-BASE)/180));
-		PWMPulseWidthSet(PWM_BASE, PWM_OUT_1, value);
+		value = (position - SERVO_MIN_ANGLE) * (end[0] - beggining[0]) /
+				(SERVO_MAX_ANGLE - SERVO_MIN_ANGLE) + beggining[0];
+		setSoftPWMDuty(SERVO_PWM, value);
 	}
-
 }
 
-int32_t servo_valueMappedToAngle(int8_t value)
+void esc_setPosition(int position)
 {
-	if(value <= -127)
+	unsigned long int value;
+
+	if (position >= ESC_MIN_ANGLE && position <= ESC_MAX_ANGLE)
 	{
-		return SERVO_LEFT_ANGLE;
+		value = (position - ESC_MIN_ANGLE) * (end[1] - beggining[1]) /
+				(ESC_MAX_ANGLE - ESC_MIN_ANGLE) + beggining[1];
+		setSoftPWMDuty(ESC_PWM, value);
 	}
-	else if(value >= 127)
-	{
-		return SERVO_RIGHT_ANGLE;
-	}
-	else if(value < 0 && value > -127)
-	{
-		return (-value * (SERVO_LEFT_ANGLE - SERVO_CENTER_ANGLE))/(127) + SERVO_CENTER_ANGLE;
-	}
-	else if(value > 0 && value < 127)
-	{
-		return ((value * (SERVO_RIGHT_ANGLE - SERVO_CENTER_ANGLE))/127) + SERVO_CENTER_ANGLE;
-	}
-	return SERVO_CENTER_ANGLE;
 }
+
+#ifdef __cplusplus
+}
+#endif

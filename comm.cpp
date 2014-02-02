@@ -24,7 +24,7 @@ void initSerialComm(unsigned long ulBaud)
 	// Select the alternate (UART) function for these pins.
 	// TODO: change this to select the port/pin you are using.
 	//
-	MAP_GPIOPinTypeUART(GPIO_PORTA_BASE, GPIO_PIN_0 | GPIO_PIN_1);
+	MAP_GPIOPinTypeUART(GPIO_PORTA_AHB_BASE, GPIO_PIN_0 | GPIO_PIN_1);
 
 	//
 	// Initialize the UART for console I/O.
@@ -36,18 +36,18 @@ void initSerialComm(unsigned long ulBaud)
 
 void initSPIComm(void)
 {
-	SysCtlPeripheralEnable(SYSCTL_PERIPH_SSI0);
-	SysCtlPeripheralEnable(SYSCTL_PERIPH_GPIOA);
+	MAP_SysCtlPeripheralEnable(SYSCTL_PERIPH_SSI0);
+	MAP_SysCtlPeripheralEnable(SYSCTL_PERIPH_GPIOA);
 
-	GPIOPinTypeSSI(GPIO_PORTA_BASE,GPIO_PIN_4|GPIO_PIN_5|GPIO_PIN_2|GPIO_PIN_3); //SPI0 output
-	SSIDisable(SSI0_BASE);
-	SSIConfigSetExpClk(SSI0_BASE,SysCtlClockGet(), SSI_FRF_MOTO_MODE_0,SSI_MODE_SLAVE, 5000,8);
-	SSIEnable(SSI0_BASE);
+	MAP_GPIOPinTypeSSI(GPIO_PORTA_AHB_BASE,GPIO_PIN_4|GPIO_PIN_5|GPIO_PIN_2|GPIO_PIN_3); //SPI0 output
+	MAP_SSIDisable(SSI0_BASE);
+	MAP_SSIConfigSetExpClk(SSI0_BASE,SysCtlClockGet(), SSI_FRF_MOTO_MODE_0,SSI_MODE_SLAVE, 5000,8);
+	MAP_SSIEnable(SSI0_BASE);
 
 	SSIIntRegister(SSI0_BASE, SSIIntHandler);
-	SSIIntClear(SSI0_BASE, SSI_RXFF);
-	SSIIntEnable(SSI0_BASE, SSI_RXFF);
-	IntEnable(INT_SSI0);
+	MAP_SSIIntClear(SSI0_BASE, SSI_RXFF);
+	MAP_SSIIntEnable(SSI0_BASE, SSI_RXFF);
+	MAP_IntEnable(INT_SSI0);
 }
 
 #if UART_SERIAL_PARSE_SSCANF
@@ -151,7 +151,7 @@ extern "C"
 
 void SSIIntHandler(void)
 {
-	SSIIntClear(SSI0_BASE, SSI_RXFF);
+	MAP_SSIIntClear(SSI0_BASE, SSI_RXFF);
 
 	static int8_t bytes_left_to_send = 0;
 	static uint8_t n_bytes_received = 0;
@@ -168,7 +168,7 @@ void SSIIntHandler(void)
 		// Receives up to 4 bytes (minimum bytes to trigger the interrupt
 		for (int i = 0; i < 4; ++i)
 		{
-			if(SSIDataGetNonBlocking(SSI0_BASE, &received_byte))
+			if(MAP_SSIDataGetNonBlocking(SSI0_BASE, &received_byte))
 			{
 
 				*(pointer_received + n_bytes_received) = received_byte;
@@ -208,7 +208,7 @@ void SSIIntHandler(void)
 
 				for(int i = 0; i < 4; i++)
 				{
-					SSIDataPutNonBlocking(SSI0_BASE, pointer_send[sizeof( ROSCASDataToRASPI) - bytes_left_to_send]);
+					MAP_SSIDataPutNonBlocking(SSI0_BASE, pointer_send[sizeof( ROSCASDataToRASPI) - bytes_left_to_send]);
 					bytes_left_to_send--;
 				}
 			}
@@ -229,11 +229,11 @@ void SSIIntHandler(void)
 
 		for(int i = 0; i < 4; i++)
 		{
-			SSIDataGetNonBlocking(SSI0_BASE, &received_byte);
+			MAP_SSIDataGetNonBlocking(SSI0_BASE, &received_byte);
 
 			if(bytes_left_to_send > 0)
 			{
-				SSIDataPutNonBlocking(SSI0_BASE, pointer_send[sizeof( ROSCASDataToRASPI) - bytes_left_to_send]);
+				MAP_SSIDataPutNonBlocking(SSI0_BASE, pointer_send[sizeof( ROSCASDataToRASPI) - bytes_left_to_send]);
 				bytes_left_to_send--;
 			}
 			else

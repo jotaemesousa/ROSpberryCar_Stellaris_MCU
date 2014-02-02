@@ -8,6 +8,8 @@
 #include <inc/hw_types.h>
 #include <inc/hw_memmap.h>
 #include <inc/hw_ints.h>
+#include <driverlib/rom_map.h>
+#include <driverlib/rom.h>
 #include <driverlib/debug.h>
 #include <driverlib/sysctl.h>
 #include <driverlib/systick.h>
@@ -31,15 +33,17 @@ uint32_t last_time_velocity = 0;
 
 void encoder_init(){
 
-	SysCtlPeripheralEnable(SYSCTL_PERIPH_GPIOB);
-	GPIOPinTypeGPIOInput(GPIO_PORTB_BASE, GPIO_PIN_6 | GPIO_PIN_7);
-	GPIOIntTypeSet(GPIO_PORTB_BASE, GPIO_PIN_6 | GPIO_PIN_7,  GPIO_BOTH_EDGES);
-	GPIOPinIntEnable(GPIO_PORTB_BASE, GPIO_PIN_6 | GPIO_PIN_7);
+	MAP_SysCtlPeripheralEnable(SYSCTL_PERIPH_GPIOB);
+	MAP_SysCtlGPIOAHBEnable(SYSCTL_PERIPH_GPIOB);
+	MAP_GPIOPinTypeGPIOInput(GPIO_PORTB_AHB_BASE, GPIO_PIN_6 | GPIO_PIN_7);
+	MAP_GPIOIntTypeSet(GPIO_PORTB_AHB_BASE, GPIO_PIN_6 | GPIO_PIN_7,  GPIO_BOTH_EDGES);
+	MAP_GPIOPinIntEnable(GPIO_PORTB_AHB_BASE, GPIO_PIN_6 | GPIO_PIN_7);
 
-	SysCtlPeripheralEnable(SYSCTL_PERIPH_GPIOD);
-	GPIOPinTypeGPIOInput(GPIO_PORTD_BASE, GPIO_PIN_3);
-	GPIOIntTypeSet(GPIO_PORTD_BASE, GPIO_PIN_3,  GPIO_BOTH_EDGES);
-	GPIOPinIntEnable(GPIO_PORTD_BASE, GPIO_PIN_3);
+	MAP_SysCtlPeripheralEnable(SYSCTL_PERIPH_GPIOD);
+	MAP_SysCtlGPIOAHBEnable(SYSCTL_PERIPH_GPIOD);
+	MAP_GPIOPinTypeGPIOInput(GPIO_PORTD_AHB_BASE, GPIO_PIN_3);
+	MAP_GPIOIntTypeSet(GPIO_PORTD_AHB_BASE, GPIO_PIN_3,  GPIO_BOTH_EDGES);
+	MAP_GPIOPinIntEnable(GPIO_PORTD_AHB_BASE, GPIO_PIN_3);
 
 	left_counter = 0;
 	left_counter_global = 0;
@@ -49,8 +53,8 @@ void encoder_init(){
 	right_oldstate = 0;
 	delta_left = 0;
 
-	IntEnable(INT_GPIOB);
-	IntEnable(INT_GPIOD);
+	MAP_IntEnable(INT_GPIOB);
+	MAP_IntEnable(INT_GPIOD);
 }
 
 void encoder_read(int32_t *left_c, int32_t *right_c, uint8_t counter)
@@ -105,12 +109,8 @@ extern "C"
 #endif
 void PORTBIntHandler ()
 {
-	GPIOPinIntClear(GPIO_PORTB_BASE, GPIO_PIN_6 | GPIO_PIN_7);
-	unsigned int currentstate = GPIOPinRead(GPIO_PORTB_BASE,GPIO_PIN_6 | GPIO_PIN_7) >> 6;
-	//	UARTprintf("Port B \noldstate : %x\n",left_oldstate);
-	//	UARTprintf("currentstate : %x\n",currentstate);
-	//	UARTprintf("state : %x\n",(left_oldstate << 2)|currentstate);
-	//	UARTprintf("counter += %d\n",lookuptable[(left_oldstate << 2)|currentstate]);
+	MAP_GPIOPinIntClear(GPIO_PORTB_AHB_BASE, GPIO_PIN_6 | GPIO_PIN_7);
+	unsigned int currentstate = GPIOPinRead(GPIO_PORTB_AHB_BASE,GPIO_PIN_6 | GPIO_PIN_7) >> 6;
 	delta_left = lookuptable[(left_oldstate << 2)|currentstate];
 	left_counter += lookuptable[(left_oldstate << 2)|currentstate];
 	left_counter_global += delta_left;
@@ -119,18 +119,10 @@ void PORTBIntHandler ()
 
 void PORTDIntHandler ()
 {
-	GPIOPinIntClear(GPIO_PORTD_BASE, GPIO_PIN_3);
-	unsigned int currentstate = GPIOPinRead(GPIO_PORTD_BASE,GPIO_PIN_3) >> 3;
-	//	UARTprintf("Port D \nold counter : %d\n",right_counter);
+	MAP_GPIOPinIntClear(GPIO_PORTD_AHB_BASE, GPIO_PIN_3);
+	unsigned int currentstate = GPIOPinRead(GPIO_PORTD_AHB_BASE,GPIO_PIN_3) >> 3;
 	right_counter += delta_left;
 	right_counter_global += delta_left;
-	//delta_left = 0;
-
-	//	UARTprintf("Port D \nnew counter : %d\n",right_counter);
-	//	UARTprintf("currentstate : %x\n",currentstate);
-	//	UARTprintf("state : %x\n",(right_oldstate << 2)|currentstate);
-	//	UARTprintf("counter += %d\n",lookuptable[(right_oldstate << 2)|currentstate]);
-	//	right_counter += lookuptable[(right_oldstate << 2)|currentstate];
 	right_oldstate = currentstate;
 }
 #ifdef __cplusplus

@@ -138,7 +138,7 @@ bool addNewLinearVelocity(int32_t v)
 
 bool addNewAngularVelocity(int32_t v)
 {
-	servo_setPosition(servo_valueMappedToAngle(v));
+	servo_setPosition(v);
 	return false;
 }
 
