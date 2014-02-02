@@ -9,7 +9,7 @@
 #include "rf24/RF24.h"
 #include "car.h"
 
-#define INA226_ALERT_PIN		GPIO_PIN_0
+#define INA226_ALERT_PIN		GPIO_PIN_1
 #define INA226_ALERT_PORT		GPIO_PORTE_AHB_BASE
 
 extern "C"
@@ -19,7 +19,7 @@ uint32_t millis();
 
 static unsigned long milliSec = 0;
 }
-
+uint32_t last_millis = millis();
 static unsigned long ulClockMS=0;
 double map_value(double x, double in_min, double in_max, double out_min, double out_max, bool trunc = false);
 
@@ -110,7 +110,7 @@ int main(void)
 	ferrari.buttons = 0;
 	ferrari.linear = 0;
 	ferrari.steer = 0;
-	uint32_t last_millis = millis();
+
 
 	RF24 radio = RF24();
 
@@ -194,7 +194,7 @@ int main(void)
 #ifdef DEBUG
 						UARTprintf("portE1 = %x\n", temp);
 #endif
-						temp = (temp & INA226_ALERT_PIN) == INA226_ALERT_PIN ? 1 : 0;
+						temp = (temp & INA226_ALERT_PIN) == INA226_ALERT_PIN ? 0 : 1;
 
 #ifdef DEBUG
 						UARTprintf("sent = %d\n", ferrari.buttons);
@@ -216,7 +216,12 @@ void SysTickHandler()
 {
 	milliSec++;
 
-	//communication_update_function();
+	if(millis() - last_millis > DELAY_BETWEEN_MSG)
+	{
+		//addNewLinearVelocity(0);
+		drive_pwm(0,1);
+		servo_setPosition(SERVO_CENTER_ANGLE);
+	}
 }
 
 uint32_t millis()

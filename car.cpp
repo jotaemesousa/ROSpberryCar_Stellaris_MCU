@@ -117,19 +117,6 @@ bool convert_values(RC_remote &in)
 	return true;
 }
 
-void updateCarParameters(void)
-{
-	if(millis() - last_millis_pid > 50)
-	{
-		last_millis_pid = millis();
-
-		int32_t le = 0, re=0, out = 0;
-		encoder_read_reset(&le, &re);
-		out = velocity_pid.run((le + re)/2);
-		drive_pwm(out,1);
-	}
-}
-
 bool addNewLinearVelocity(int32_t v)
 {
 	velocity_pid.setNewReference((float)v,0);

@@ -36,12 +36,7 @@ void initSerialComm(unsigned long ulBaud)
 
 void communication_update_function(void)
 {
-	if(millis() - last_comm_millis > DELAY_BETWEEN_MSG)
-	{
-		addNewLinearVelocity(0);
-		drive_pwm(0,1);
-		servo_setPosition(SERVO_CENTER_ANGLE);
-	}
+
 
 	updateCarParameters();
 }
